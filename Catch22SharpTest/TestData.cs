@@ -13,11 +13,17 @@ namespace Catch22SharpTest
         public static double[] Test1 = default!;
         public static Dictionary<string, double> Test1Output = default!;
 
+        public static double[] TestShort = default!;
+        public static Dictionary<string, double> TestShortOutput = default!;
+
         [AssemblyInitialize]
         public static void AssemblyInitialize(TestContext testContext)
         {
             Test1 = GetData(Path.Combine(testDataDirectory, "test.txt"));
             Test1Output = GetExpectedValues(Path.Combine(testDataDirectory, "test_output.txt"));
+
+            TestShort = GetData(Path.Combine(testDataDirectory, "testShort.txt"));
+            TestShortOutput = GetExpectedValues(Path.Combine(testDataDirectory, "testShort_output.txt"));
         }
 
         [TestMethod]
@@ -25,6 +31,13 @@ namespace Catch22SharpTest
         {
             Assert.IsNotNull(Test1);
             Assert.IsNotNull(Test1Output);
+        }
+
+        [TestMethod]
+        public void TestShortData()
+        {
+            Assert.IsNotNull(TestShort);
+            Assert.IsNotNull(TestShortOutput);
         }
 
         private static double[] GetData(string path)

@@ -16,5 +16,13 @@ namespace Catch22SharpTest
             var expected = TestData.Test1Output["DN_OutlierInclude_n_001_mdrmd"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
+
+        [TestMethod]
+        public void TestShort()
+        {
+            var actual = Catch22.DN_OutlierInclude_n_001_mdrmd(TestData.TestShort);
+            var expected = TestData.TestShortOutput["DN_OutlierInclude_n_001_mdrmd"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
     }
 }
