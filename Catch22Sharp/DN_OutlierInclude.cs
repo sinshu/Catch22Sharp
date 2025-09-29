@@ -6,7 +6,6 @@ namespace Catch22Sharp
     {
         public static double DN_OutlierInclude_np_001_mdrmd(Span<double> y, int sign)
         {
-            // NaN check
             for (int i = 0; i < y.Length; i++)
             {
                 if (double.IsNaN(y[i]))
@@ -15,8 +14,12 @@ namespace Catch22Sharp
                 }
             }
 
-            double inc = 0.01;
+            if (y.Length == 0)
+            {
+                return 0.0;
+            }
 
+            double inc = 0.01;
             bool constantFlag = true;
             for (int i = 1; i < y.Length; i++)
             {
@@ -26,9 +29,10 @@ namespace Catch22Sharp
                     break;
                 }
             }
+
             if (constantFlag)
             {
-                return 0;
+                return 0.0;
             }
 
             double[] yWork = new double[y.Length];
@@ -44,10 +48,15 @@ namespace Catch22Sharp
                 }
             }
 
+            if (tot == 0)
+            {
+                return 0.0;
+            }
+
             double maxVal = Stats.max_(yWork.AsSpan());
             if (maxVal < inc)
             {
-                return 0;
+                return 0.0;
             }
 
             int nThresh = (int)(maxVal / inc) + 1;
@@ -67,21 +76,20 @@ namespace Catch22Sharp
                         highSize += 1;
                     }
                 }
-                double[] Dt_exc = new double[Math.Max(0, highSize - 1)];
+
+                double[] dtExc = new double[Math.Max(0, highSize - 1)];
                 for (int i = 0; i < highSize - 1; i++)
                 {
-                    Dt_exc[i] = r[i + 1] - r[i];
+                    dtExc[i] = r[i + 1] - r[i];
                 }
 
-                // Match the reference implementation behaviour where the mean of an empty
-                // array produces NaN and is used downstream to trim the tail of the
-                // distribution.  Using NaN here ensures we mirror the trim logic that relies
-                // on detecting NaN entries in msDti1.
                 msDti1[j] = highSize > 1
-                    ? Stats.mean(Dt_exc.AsSpan(0, highSize - 1))
+                    ? Stats.mean(dtExc.AsSpan(0, highSize - 1))
                     : double.NaN;
                 msDti3[j] = (highSize - 1) * 100.0 / tot;
-                msDti4[j] = highSize > 0 ? Stats.median(r.AsSpan(0, highSize)) / ((double)y.Length / 2) - 1 : 0.0;
+                msDti4[j] = highSize > 0
+                    ? HelperFunctions.quantile(r.AsSpan(0, highSize), 0.5) / (y.Length / 2.0) - 1
+                    : 0.0;
             }
 
             int trimthr = 2;
@@ -93,13 +101,21 @@ namespace Catch22Sharp
                 {
                     mj = i;
                 }
+
                 if (double.IsNaN(msDti1[nThresh - 1 - i]))
                 {
                     fbi = nThresh - 1 - i;
                 }
             }
+
             int trimLimit = Math.Min(mj, fbi);
-            double outputScalar = Stats.median(msDti4.AsSpan(0, trimLimit + 1));
+            if (trimLimit < 0)
+            {
+                return 0.0;
+            }
+
+            Span<double> trimSpan = msDti4.AsSpan(0, trimLimit + 1);
+            double outputScalar = HelperFunctions.quantile(trimSpan, 0.5);
             return outputScalar;
         }
 
@@ -120,16 +136,19 @@ namespace Catch22Sharp
             double[] yAbs = new double[y.Length];
             for (int i = 0; i < y.Length; i++)
             {
-                yAbs[i] = Math.Abs(y[i]);
-                if (yAbs[i] > maxAbs)
+                double value = Math.Abs(y[i]);
+                yAbs[i] = value;
+                if (value > maxAbs)
                 {
-                    maxAbs = yAbs[i];
+                    maxAbs = value;
                 }
             }
+
             int nThresh = (int)(maxAbs / inc) + 1;
             double[] highInds = new double[y.Length];
             double[] msDti3 = new double[nThresh];
             double[] msDti4 = new double[nThresh];
+
             for (int j = 0; j < nThresh; j++)
             {
                 int highSize = 0;
@@ -141,10 +160,14 @@ namespace Catch22Sharp
                         highSize += 1;
                     }
                 }
-                double medianOut = highSize > 0 ? Stats.median(highInds.AsSpan(0, highSize)) : 0.0;
-                msDti3[j] = (highSize - 1) * 100.0 / y.Length;
-                msDti4[j] = (y.Length > 0) ? medianOut / (y.Length / 2.0) - 1 : 0.0;
+
+                double medianOut = highSize > 0
+                    ? HelperFunctions.quantile(highInds.AsSpan(0, highSize), 0.5)
+                    : 0.0;
+                msDti3[j] = y.Length > 0 ? (highSize - 1) * 100.0 / y.Length : 0.0;
+                msDti4[j] = y.Length > 0 ? medianOut / (y.Length / 2.0) - 1 : 0.0;
             }
+
             int trimthr = 2;
             int mj = 0;
             for (int i = 0; i < nThresh; i++)
@@ -154,7 +177,9 @@ namespace Catch22Sharp
                     mj = i;
                 }
             }
-            double outputScalar = Stats.median(msDti4.AsSpan(0, mj));
+
+            Span<double> trim = msDti4.AsSpan(0, mj);
+            double outputScalar = HelperFunctions.quantile(trim, 0.5);
             return outputScalar;
         }
     }

@@ -1,46 +1,101 @@
 using System;
+using System.Numerics;
 
 namespace Catch22Sharp
 {
     public static partial class Catch22
     {
+        private static int nextpow2(int n)
+        {
+            if (n <= 0)
+            {
+                return 1;
+            }
+
+            n--;
+            n |= n >> 1;
+            n |= n >> 2;
+            n |= n >> 4;
+            n |= n >> 8;
+            n |= n >> 16;
+            n++;
+            return n;
+        }
+
+        private static void dot_multiply(Span<Complex> a, Span<Complex> b)
+        {
+            if (a.Length != b.Length)
+            {
+                throw new ArgumentException("Span lengths must match.");
+            }
+
+            for (int i = 0; i < a.Length; i++)
+            {
+                Complex valueA = a[i];
+                Complex valueB = b[i];
+                a[i] = valueA * Complex.Conjugate(valueB);
+            }
+        }
+
         private static double[] co_autocorrs(Span<double> y)
         {
             int size = y.Length;
+            if (size == 0)
+            {
+                return Array.Empty<double>();
+            }
+
             double mean = Stats.mean(y);
-            double[] centered = new double[size];
-            for (int i = 0; i < size; i++)
-            {
-                centered[i] = y[i] - mean;
-            }
-
             double zeroLag = 0.0;
+            int nFFT = nextpow2(size) << 1;
+            Complex[] spectrum = new Complex[nFFT];
+
             for (int i = 0; i < size; i++)
             {
-                zeroLag += centered[i] * centered[i];
+                double centered = y[i] - mean;
+                spectrum[i] = new Complex(centered, 0.0);
+                zeroLag += centered * centered;
             }
 
-            double[] autocorrs = new double[size > 0 ? size : 1];
             if (zeroLag == 0.0)
             {
-                if (autocorrs.Length > 0)
+                double[] constant = new double[size];
+                if (constant.Length > 0)
                 {
-                    autocorrs[0] = 1.0;
+                    constant[0] = 1.0;
                 }
+                return constant;
+            }
+
+            Complex[] twiddles = new Complex[nFFT];
+            Fft.twiddles(twiddles.AsSpan());
+            dot_multiply_fft(spectrum.AsSpan(), twiddles.AsSpan());
+
+            double divisor = spectrum[0].Real;
+            if (divisor == 0.0)
+            {
+                divisor = zeroLag;
+            }
+
+            double[] autocorrs = new double[nFFT];
+            if (divisor == 0.0)
+            {
                 return autocorrs;
             }
 
-            for (int lag = 0; lag < size; lag++)
+            for (int i = 0; i < nFFT; i++)
             {
-                double sum = 0.0;
-                for (int i = 0; i < size - lag; i++)
-                {
-                    sum += centered[i] * centered[i + lag];
-                }
-                autocorrs[lag] = sum / zeroLag;
+                autocorrs[i] = spectrum[i].Real / divisor;
             }
 
             return autocorrs;
+        }
+
+        private static void dot_multiply_fft(Span<Complex> spectrum, Span<Complex> twiddles)
+        {
+            Fft.fft(spectrum, twiddles);
+            dot_multiply(spectrum, spectrum);
+            Fft.fft(spectrum, twiddles);
         }
 
         private static int co_firstzero(Span<double> y, int maxtau)

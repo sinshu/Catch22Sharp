@@ -31,12 +31,16 @@ namespace Catch22Sharp
             double[] binEdges = new double[nBins + 1];
             HistCounts.histcounts_preallocated(yWork, nBins, histCounts.AsSpan(), binEdges.AsSpan());
 
+            double binStep = nBins > 0 ? binEdges[1] - binEdges[0] : 0.0;
+            double[] binCenters = new double[nBins];
+            HelperFunctions.linspace(binEdges[0] + binStep / 2.0, binEdges[nBins] - binStep / 2.0, nBins, binCenters.AsSpan());
+
             double maxCount = 0;
             int numMaxs = 1;
             double outputValue = 0;
             for (int i = 0; i < nBins; i++)
             {
-                double binMean = (binEdges[i] + binEdges[i + 1]) * 0.5;
+                double binMean = binCenters[i];
                 if (histCounts[i] > maxCount)
                 {
                     maxCount = histCounts[i];
