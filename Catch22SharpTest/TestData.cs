@@ -47,10 +47,24 @@ namespace Catch22SharpTest
         }
 
         [TestMethod]
+        public void Test2Data()
+        {
+            Assert.IsNotNull(Test2);
+            Assert.IsNotNull(Test2Output);
+        }
+
+        [TestMethod]
         public void TestShortData()
         {
             Assert.IsNotNull(TestShort);
             Assert.IsNotNull(TestShortOutput);
+        }
+
+        [TestMethod]
+        public void TestSinusoidData()
+        {
+            Assert.IsNotNull(TestSinusoid);
+            Assert.IsNotNull(TestSinusoidOutput);
         }
 
         private static double[] GetData(string path)

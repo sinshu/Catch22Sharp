@@ -7,7 +7,7 @@ using Catch22Sharp;
 namespace Catch22SharpTest
 {
     [TestClass]
-    public class DN_OutlierInclude
+    public class DN_OutlierInclude_n_001_mdrmd
     {
         [TestMethod]
         public void Test1()
