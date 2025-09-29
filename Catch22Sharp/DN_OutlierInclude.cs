@@ -16,26 +16,32 @@ namespace Catch22Sharp
             }
 
             double inc = 0.01;
-            int tot = 0;
-            double[] yWork = new double[y.Length];
 
-            // apply sign and check constant time series
             bool constantFlag = true;
-            for (int i = 0; i < y.Length; i++)
+            for (int i = 1; i < y.Length; i++)
             {
                 if (y[i] != y[0])
                 {
                     constantFlag = false;
-                }
-                yWork[i] = sign * y[i];
-                if (yWork[i] >= 0)
-                {
-                    tot += 1;
+                    break;
                 }
             }
             if (constantFlag)
             {
                 return 0;
+            }
+
+            double[] yWork = new double[y.Length];
+            Stats.zscore_norm2(y, yWork.AsSpan());
+
+            int tot = 0;
+            for (int i = 0; i < yWork.Length; i++)
+            {
+                yWork[i] = sign * yWork[i];
+                if (yWork[i] >= 0)
+                {
+                    tot += 1;
+                }
             }
 
             double maxVal = Stats.max_(yWork.AsSpan());
@@ -66,7 +72,14 @@ namespace Catch22Sharp
                 {
                     Dt_exc[i] = r[i + 1] - r[i];
                 }
-                msDti1[j] = highSize > 1 ? Stats.mean(Dt_exc.AsSpan(0, highSize - 1)) : 0.0;
+
+                // Match the reference implementation behaviour where the mean of an empty
+                // array produces NaN and is used downstream to trim the tail of the
+                // distribution.  Using NaN here ensures we mirror the trim logic that relies
+                // on detecting NaN entries in msDti1.
+                msDti1[j] = highSize > 1
+                    ? Stats.mean(Dt_exc.AsSpan(0, highSize - 1))
+                    : double.NaN;
                 msDti3[j] = (highSize - 1) * 100.0 / tot;
                 msDti4[j] = highSize > 0 ? Stats.median(r.AsSpan(0, highSize)) / ((double)y.Length / 2) - 1 : 0.0;
             }
