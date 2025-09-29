@@ -8,7 +8,8 @@ namespace Catch22SharpTest
     [TestClass]
     public class TestData
     {
-        private static readonly string testDataDirectory = @"..\..\..\..\testData";
+        private static readonly string testDataDirectory = Path.GetFullPath(
+            Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "testData"));
 
         public static double[] Test1 = default!;
         public static Dictionary<string, double> Test1Output = default!;
