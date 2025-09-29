@@ -14,8 +14,14 @@ namespace Catch22SharpTest
         public static double[] Test1 = default!;
         public static Dictionary<string, double> Test1Output = default!;
 
+        public static double[] Test2 = default!;
+        public static Dictionary<string, double> Test2Output = default!;
+
         public static double[] TestShort = default!;
         public static Dictionary<string, double> TestShortOutput = default!;
+
+        public static double[] TestSinusoid = default!;
+        public static Dictionary<string, double> TestSinusoidOutput = default!;
 
         [AssemblyInitialize]
         public static void AssemblyInitialize(TestContext testContext)
@@ -23,8 +29,14 @@ namespace Catch22SharpTest
             Test1 = GetData(Path.Combine(testDataDirectory, "test.txt"));
             Test1Output = GetExpectedValues(Path.Combine(testDataDirectory, "test_output.txt"));
 
+            Test2 = GetData2(Path.Combine(testDataDirectory, "test2.txt"));
+            Test2Output = GetExpectedValues(Path.Combine(testDataDirectory, "test2_output.txt"));
+
             TestShort = GetData(Path.Combine(testDataDirectory, "testShort.txt"));
             TestShortOutput = GetExpectedValues(Path.Combine(testDataDirectory, "testShort_output.txt"));
+
+            TestSinusoid = GetData(Path.Combine(testDataDirectory, "testSinusoid.txt"));
+            TestSinusoidOutput = GetExpectedValues(Path.Combine(testDataDirectory, "testSinusoid_output.txt"));
         }
 
         [TestMethod]
@@ -44,6 +56,11 @@ namespace Catch22SharpTest
         private static double[] GetData(string path)
         {
             return File.ReadLines(path).Select(double.Parse).ToArray();
+        }
+
+        private static double[] GetData2(string path)
+        {
+            return File.ReadAllText(path).Split(' ').Select(double.Parse).ToArray();
         }
 
         private static Dictionary<string, double> GetExpectedValues(string path)

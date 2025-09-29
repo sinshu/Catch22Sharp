@@ -18,10 +18,26 @@ namespace Catch22SharpTest
         }
 
         [TestMethod]
+        public void Test2()
+        {
+            var actual = Catch22.DN_OutlierInclude_n_001_mdrmd(TestData.Test2);
+            var expected = TestData.Test2Output["DN_OutlierInclude_n_001_mdrmd"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
         public void TestShort()
         {
             var actual = Catch22.DN_OutlierInclude_n_001_mdrmd(TestData.TestShort);
             var expected = TestData.TestShortOutput["DN_OutlierInclude_n_001_mdrmd"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
+        public void TestSinusoid()
+        {
+            var actual = Catch22.DN_OutlierInclude_n_001_mdrmd(TestData.TestSinusoid);
+            var expected = TestData.TestSinusoidOutput["DN_OutlierInclude_n_001_mdrmd"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
     }
