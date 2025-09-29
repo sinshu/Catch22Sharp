@@ -27,31 +27,9 @@ namespace Catch22Sharp
             Stats.zscore_norm2(y, yZscored.AsSpan());
             Span<double> yWork = yZscored;
 
-            double minZ = Stats.min_(yWork);
-            double maxZ = Stats.max_(yWork);
-            double binStep = (maxZ - minZ) / nBins;
             int[] histCounts = new int[nBins];
             double[] binEdges = new double[nBins + 1];
-
-            for (int i = 0; i < yWork.Length; i++)
-            {
-                double value = yWork[i];
-                int binInd = (int)((value - minZ) / binStep);
-                if (binInd < 0)
-                {
-                    binInd = 0;
-                }
-                if (binInd >= nBins)
-                {
-                    binInd = nBins - 1;
-                }
-                histCounts[binInd] += 1;
-            }
-
-            for (int i = 0; i < nBins + 1; i++)
-            {
-                binEdges[i] = i * binStep + minZ;
-            }
+            HistCounts.histcounts_preallocated(yWork, nBins, histCounts.AsSpan(), binEdges.AsSpan());
 
             double maxCount = 0;
             int numMaxs = 1;
