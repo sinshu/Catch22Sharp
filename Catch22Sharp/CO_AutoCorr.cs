@@ -157,7 +157,7 @@ namespace Catch22Sharp
             }
 
             double l = Stats.mean(d.AsSpan(0, validLength));
-            int nBins = num_bins_auto(d.AsSpan(0, validLength));
+            int nBins = HistCounts.num_bins_auto(d.AsSpan(0, validLength));
             if (nBins == 0)
             {
                 return 0.0;
@@ -165,7 +165,7 @@ namespace Catch22Sharp
 
             int[] histCounts = new int[nBins];
             double[] binEdges = new double[nBins + 1];
-            histcounts_preallocated(d.AsSpan(0, validLength), nBins, histCounts, binEdges);
+            HistCounts.histcounts_preallocated(d.AsSpan(0, validLength), nBins, histCounts.AsSpan(), binEdges.AsSpan());
 
             double[] histCountsNorm = new double[nBins];
             for (int i = 0; i < nBins; i++)
@@ -272,8 +272,8 @@ namespace Catch22Sharp
                 binEdges[i] = minValue + binStep * i - 0.1;
             }
 
-            int[] bins1 = histbinassign(y1, binEdges);
-            int[] bins2 = histbinassign(y2, binEdges);
+            int[] bins1 = HistCounts.histbinassign(y1.AsSpan(), binEdges.AsSpan());
+            int[] bins2 = HistCounts.histbinassign(y2.AsSpan(), binEdges.AsSpan());
 
             double[] bins12 = new double[length];
             double[] binEdges12 = new double[(numBins + 1) * (numBins + 1)];
@@ -286,7 +286,7 @@ namespace Catch22Sharp
                 binEdges12[i] = i + 1;
             }
 
-            int[] jointHistLinear = histcount_edges(bins12, binEdges12);
+            int[] jointHistLinear = HistCounts.histcount_edges(bins12.AsSpan(), binEdges12.AsSpan());
 
             double[][] pij = new double[numBins][];
             for (int i = 0; i < numBins; i++)
@@ -347,97 +347,6 @@ namespace Catch22Sharp
             return ami;
         }
 
-        private static int num_bins_auto(Span<double> y)
-        {
-            double maxVal = Stats.max_(y);
-            double minVal = Stats.min_(y);
-            double std = Stats.stddev(y);
-            if (std < 0.001)
-            {
-                return 0;
-            }
-
-            double bins = (maxVal - minVal) / (3.5 * std / Math.Pow(y.Length, 1.0 / 3.0));
-            return (int)Math.Ceiling(bins);
-        }
-
-        private static void histcounts_preallocated(Span<double> y, int nBins, int[] binCounts, double[] binEdges)
-        {
-            double minVal = double.MaxValue;
-            double maxVal = double.MinValue;
-            for (int i = 0; i < y.Length; i++)
-            {
-                if (y[i] < minVal)
-                {
-                    minVal = y[i];
-                }
-                if (y[i] > maxVal)
-                {
-                    maxVal = y[i];
-                }
-            }
-
-            double binStep = nBins > 0 ? (maxVal - minVal) / nBins : 0.0;
-            if (binStep == 0.0)
-            {
-                binStep = 1.0;
-            }
-
-            Array.Clear(binCounts, 0, nBins);
-            for (int i = 0; i < y.Length; i++)
-            {
-                int binInd = (int)((y[i] - minVal) / binStep);
-                if (binInd < 0)
-                {
-                    binInd = 0;
-                }
-                if (binInd >= nBins)
-                {
-                    binInd = nBins - 1;
-                }
-                binCounts[binInd] += 1;
-            }
-
-            for (int i = 0; i < nBins + 1; i++)
-            {
-                binEdges[i] = i * binStep + minVal;
-            }
-        }
-
-        private static int[] histbinassign(double[] y, double[] binEdges)
-        {
-            int[] binIdentity = new int[y.Length];
-            for (int i = 0; i < y.Length; i++)
-            {
-                binIdentity[i] = 0;
-                for (int j = 0; j < binEdges.Length; j++)
-                {
-                    if (y[i] < binEdges[j])
-                    {
-                        binIdentity[i] = j;
-                        break;
-                    }
-                }
-            }
-            return binIdentity;
-        }
-
-        private static int[] histcount_edges(double[] y, double[] binEdges)
-        {
-            int[] histcounts = new int[binEdges.Length];
-            for (int i = 0; i < y.Length; i++)
-            {
-                for (int j = 0; j < binEdges.Length; j++)
-                {
-                    if (y[i] <= binEdges[j])
-                    {
-                        histcounts[j] += 1;
-                        break;
-                    }
-                }
-            }
-            return histcounts;
-        }
     }
 }
 
