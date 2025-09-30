@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Catch22Sharp
 {
-    public static class Fft
+    internal static class Fft
     {
         public static void twiddles(Span<Complex> a)
         {

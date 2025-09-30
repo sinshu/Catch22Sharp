@@ -2,7 +2,7 @@ using System;
 
 namespace Catch22Sharp
 {
-    public static class HelperFunctions
+    internal static class HelperFunctions
     {
         // wrapper for qsort for array of doubles. Sorts in-place
         public static void sort(Span<double> y)

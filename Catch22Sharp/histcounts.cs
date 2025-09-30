@@ -2,7 +2,7 @@ using System;
 
 namespace Catch22Sharp
 {
-    public static class HistCounts
+    internal static class HistCounts
     {
         public static int num_bins_auto(ReadOnlySpan<double> y)
         {

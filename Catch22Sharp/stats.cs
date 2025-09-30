@@ -2,7 +2,7 @@ using System;
 
 namespace Catch22Sharp
 {
-    public static class Stats
+    internal static class Stats
     {
         public static double min_(ReadOnlySpan<double> a)
         {
