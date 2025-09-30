@@ -68,6 +68,17 @@ namespace Catch22SharpTest
             Assert.IsNotNull(TestSinusoidOutput);
         }
 
+        [TestMethod]
+        public void Catch22Object()
+        {
+            var catch22 = new Catch22(Test1);
+            foreach (var (name, expected) in Test1Output)
+            {
+                var actual = catch22[name];
+                Assert.AreEqual(expected, actual, 1.0E-6);
+            }
+        }
+
         private static double[] GetData(string path)
         {
             var data = File.ReadLines(path).Select(double.Parse).ToArray();

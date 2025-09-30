@@ -17,46 +17,69 @@ namespace Catch22Sharp
             {
                 { "DN_HistogramMode_5", 0 },
                 { "mode_5", 0 },
+
                 { "DN_HistogramMode_10", 1 },
                 { "mode_10", 1 },
+
                 { "DN_OutlierInclude_p_001_mdrmd", 2 },
                 { "outlier_timing_pos", 2 },
+
                 { "DN_OutlierInclude_n_001_mdrmd", 3 },
                 { "outlier_timing_neg", 3 },
+
                 { "first1e_acf_tau", 4 },
                 { "acf_timescale", 4 },
+                { "CO_f1ecac", 4 },
+
                 { "firstMin_acf", 5 },
                 { "acf_first_min", 5 },
+                { "CO_FirstMin_ac", 5 },
+
                 { "SP_Summaries_welch_rect_area_5_1", 6 },
                 { "low_freq_power", 6 },
+
                 { "SP_Summaries_welch_rect_centroid", 7 },
                 { "centroid_freq", 7 },
+
                 { "FC_LocalSimple_mean3_stderr", 8 },
                 { "forecast_error", 8 },
+
                 { "FC_LocalSimple_mean1_tauresrat", 9 },
                 { "whiten_timescale", 9 },
+
                 { "MD_hrv_classic_pnn40", 10 },
                 { "high_fluctuation", 10 },
+
                 { "SB_BinaryStats_mean_longstretch1", 11 },
                 { "stretch_high", 11 },
+
                 { "SB_BinaryStats_diff_longstretch0", 12 },
                 { "stretch_decreasing", 12 },
+
                 { "SB_MotifThree_quantile_hh", 13 },
                 { "entropy_pairs", 13 },
+
                 { "CO_HistogramAMI_even_2_5", 14 },
                 { "ami2", 14 },
+
                 { "CO_trev_1_num", 15 },
                 { "trev", 15 },
+
                 { "IN_AutoMutualInfoStats_40_gaussian_fmmi", 16 },
                 { "ami_timescale", 16 },
+
                 { "SB_TransitionMatrix_3ac_sumdiagcov", 17 },
                 { "transition_variance", 17 },
+
                 { "PD_PeriodicityWang_th0_01", 18 },
                 { "periodicity", 18 },
+
                 { "CO_Embed2_Dist_tau_d_expfit_meandiff", 19 },
                 { "embedding_dist", 19 },
+
                 { "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1", 20 },
                 { "rs_range", 20 },
+
                 { "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1", 21 },
                 { "dfa", 21 },
             };
@@ -70,6 +93,10 @@ namespace Catch22Sharp
         /// <param name="y">Input time-series data expressed as a span of doubles.</param>
         public Catch22(ReadOnlySpan<double> y)
         {
+            var normalized = y.ToArray();
+            Stats.zscore_norm2(y, normalized);
+            y = normalized;
+
             values = new double[22];
             values[0] = DN_HistogramMode_5(y);
             values[1] = DN_HistogramMode_10(y);
