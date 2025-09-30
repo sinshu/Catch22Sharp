@@ -4,7 +4,7 @@ namespace Catch22Sharp
 {
     public static partial class Catch22
     {
-        public static double IN_AutoMutualInfoStats_40_gaussian_fmmi(Span<double> y)
+        public static double IN_AutoMutualInfoStats_40_gaussian_fmmi(ReadOnlySpan<double> y)
         {
             // NaN check
             for (int i = 0; i < y.Length; i++)

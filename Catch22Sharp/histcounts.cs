@@ -4,7 +4,7 @@ namespace Catch22Sharp
 {
     public static class HistCounts
     {
-        public static int num_bins_auto(Span<double> y)
+        public static int num_bins_auto(ReadOnlySpan<double> y)
         {
             int size = y.Length;
 
@@ -19,7 +19,7 @@ namespace Catch22Sharp
             return (int)Math.Ceiling((maxVal - minVal) / (3.5 * Stats.stddev(y) / Math.Pow(size, 1 / 3.0)));
         }
 
-        public static int histcounts_preallocated(Span<double> y, int nBins, Span<int> binCounts, Span<double> binEdges)
+        public static int histcounts_preallocated(ReadOnlySpan<double> y, int nBins, Span<int> binCounts, Span<double> binEdges)
         {
             int size = y.Length;
 
@@ -80,7 +80,7 @@ namespace Catch22Sharp
             return 0;
         }
 
-        public static int histcounts(Span<double> y, int nBins, out int[] binCounts, out double[] binEdges)
+        public static int histcounts(ReadOnlySpan<double> y, int nBins, out int[] binCounts, out double[] binEdges)
         {
             int size = y.Length;
 
@@ -148,7 +148,7 @@ namespace Catch22Sharp
             return nBins;
         }
 
-        public static int[] histbinassign(Span<double> y, Span<double> binEdges)
+        public static int[] histbinassign(ReadOnlySpan<double> y, ReadOnlySpan<double> binEdges)
         {
             int size = y.Length;
 
@@ -173,7 +173,7 @@ namespace Catch22Sharp
             return binIdentity;
         }
 
-        public static int[] histcount_edges(Span<double> y, Span<double> binEdges)
+        public static int[] histcount_edges(ReadOnlySpan<double> y, ReadOnlySpan<double> binEdges)
         {
             int size = y.Length;
             int nEdges = binEdges.Length;

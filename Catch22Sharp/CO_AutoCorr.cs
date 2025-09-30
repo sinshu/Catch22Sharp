@@ -17,15 +17,16 @@ namespace Catch22Sharp
             return n;
         }
 
-        private static void dot_multiply(Span<Complex> a, Span<Complex> b, int size)
+        private static void dot_multiply(Span<Complex> a, ReadOnlySpan<Complex> b)
         {
+            int size = Math.Min(a.Length, b.Length);
             for (int i = 0; i < size; i++)
             {
                 a[i] = a[i] * Complex.Conjugate(b[i]);
             }
         }
 
-        private static double[] co_autocorrs(Span<double> y)
+        private static double[] co_autocorrs(ReadOnlySpan<double> y)
         {
             int size = y.Length;
             double m;
@@ -46,7 +47,7 @@ namespace Catch22Sharp
 
             Fft.twiddles(tw.AsSpan());
             Fft.fft(F.AsSpan(), tw.AsSpan());
-            dot_multiply(F.AsSpan(), F.AsSpan(), nFFT);
+            dot_multiply(F.AsSpan(), F.AsSpan());
             Fft.fft(F.AsSpan(), tw.AsSpan());
             Complex divisor = F[0];
             for (int i = 0; i < nFFT; i++)
@@ -62,12 +63,13 @@ namespace Catch22Sharp
             return @out;
         }
 
-        private static int co_firstzero(Span<double> y, int maxtau)
+        private static int co_firstzero(ReadOnlySpan<double> y)
         {
             double[] autocorrs = co_autocorrs(y);
+            int limit = Math.Min(y.Length, autocorrs.Length);
 
             int zerocrossind = 0;
-            while (zerocrossind < maxtau && autocorrs[zerocrossind] > 0)
+            while (zerocrossind < limit && autocorrs[zerocrossind] > 0)
             {
                 zerocrossind += 1;
             }
@@ -75,7 +77,7 @@ namespace Catch22Sharp
             return zerocrossind;
         }
 
-        public static double[] CO_AutoCorr(Span<double> y, Span<int> tau)
+        public static double[] CO_AutoCorr(ReadOnlySpan<double> y, ReadOnlySpan<int> tau)
         {
             int tau_size = tau.Length;
             double[] autocorrs = co_autocorrs(y);
@@ -87,7 +89,7 @@ namespace Catch22Sharp
             return @out;
         }
 
-        public static double CO_f1ecac(Span<double> y)
+        public static double CO_f1ecac(ReadOnlySpan<double> y)
         {
             // NaN check
             for (int i = 0; i < y.Length; i++)
@@ -122,14 +124,14 @@ namespace Catch22Sharp
             return @out;
         }
 
-        public static double CO_Embed2_Basic_tau_incircle(Span<double> y, double radius, int tau)
+        public static double CO_Embed2_Basic_tau_incircle(ReadOnlySpan<double> y, double radius, int tau)
         {
             int size = y.Length;
             int tauIntern = 0;
 
             if (tau < 0)
             {
-                tauIntern = co_firstzero(y, size);
+                tauIntern = co_firstzero(y);
             }
             else
             {
@@ -148,7 +150,7 @@ namespace Catch22Sharp
             return insidecount / (size - tauIntern);
         }
 
-        public static double CO_Embed2_Dist_tau_d_expfit_meandiff(Span<double> y)
+        public static double CO_Embed2_Dist_tau_d_expfit_meandiff(ReadOnlySpan<double> y)
         {
             int size = y.Length;
 
@@ -161,7 +163,7 @@ namespace Catch22Sharp
                 }
             }
 
-            int tau = co_firstzero(y, size);
+            int tau = co_firstzero(y);
 
             //printf("co_firstzero ran\n");
 
@@ -254,7 +256,7 @@ namespace Catch22Sharp
             return @out;
         }
 
-        public static int CO_FirstMin_ac(Span<double> y)
+        public static int CO_FirstMin_ac(ReadOnlySpan<double> y)
         {
             // NaN check
             for (int i = 0; i < y.Length; i++)
@@ -280,7 +282,7 @@ namespace Catch22Sharp
             return minInd;
         }
 
-        public static double CO_trev_1_num(Span<double> y)
+        public static double CO_trev_1_num(ReadOnlySpan<double> y)
         {
             // NaN check
             for (int i = 0; i < y.Length; i++)
@@ -307,7 +309,7 @@ namespace Catch22Sharp
             return @out;
         }
 
-        public static double CO_HistogramAMI_even_2_5(Span<double> y)
+        public static double CO_HistogramAMI_even_2_5(ReadOnlySpan<double> y)
         {
             // NaN check
             for (int i = 0; i < y.Length; i++)

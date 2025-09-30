@@ -35,7 +35,7 @@ namespace Catch22Sharp
             }
         }
 
-        public static void fft(Span<Complex> a, Span<Complex> tw)
+        public static void fft(Span<Complex> a, ReadOnlySpan<Complex> tw)
         {
             int size = a.Length;
             Complex[] aArray = a.ToArray();

@@ -4,14 +4,14 @@ namespace Catch22Sharp
 {
     public static partial class Catch22
     {
-        public static double MD_hrv_classic_pnn40(Span<double> y, int size)
+        public static double MD_hrv_classic_pnn40(ReadOnlySpan<double> y)
         {
-            Span<double> ySpan = y.Slice(0, size);
+            int size = y.Length;
 
             // NaN check
             for (int i = 0; i < size; i++)
             {
-                if (double.IsNaN(ySpan[i]))
+                if (double.IsNaN(y[i]))
                 {
                     return double.NaN;
                 }
@@ -21,7 +21,7 @@ namespace Catch22Sharp
 
             // compute diff
             double[] Dy = new double[size - 1];
-            Stats.diff(ySpan, Dy.AsSpan());
+            Stats.diff(y, Dy.AsSpan());
 
             double pnn40 = 0;
             for (int i = 0; i < size - 1; i++)

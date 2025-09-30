@@ -4,7 +4,7 @@ namespace Catch22Sharp
 {
     public static partial class Catch22
     {
-        public static double DN_HistogramMode_10(Span<double> y)
+        public static double DN_HistogramMode_10(ReadOnlySpan<double> y)
         {
             // NaN check
             for (int i = 0; i < y.Length; i++)
