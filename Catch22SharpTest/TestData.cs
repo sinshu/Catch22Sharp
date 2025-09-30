@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Catch22Sharp;
 
 namespace Catch22SharpTest
 {
@@ -69,12 +70,14 @@ namespace Catch22SharpTest
 
         private static double[] GetData(string path)
         {
-            return File.ReadLines(path).Select(double.Parse).ToArray();
+            var data = File.ReadLines(path).Select(double.Parse).ToArray();
+            return Normalize(data);
         }
 
         private static double[] GetData2(string path)
         {
-            return File.ReadAllText(path).Split(' ').Select(double.Parse).ToArray();
+            var data = File.ReadAllText(path).Split(' ').Select(double.Parse).ToArray();
+            return Normalize(data);
         }
 
         private static Dictionary<string, double> GetExpectedValues(string path)
@@ -95,6 +98,17 @@ namespace Catch22SharpTest
             }
 
             return dic;
+        }
+
+        private static double[] Normalize(double[] data)
+        {
+            if (data.Length <= 1)
+            {
+                return data;
+            }
+
+            Stats.zscore_norm(data.AsSpan());
+            return data;
         }
     }
 }

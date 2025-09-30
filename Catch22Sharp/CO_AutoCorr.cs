@@ -183,27 +183,23 @@ namespace Catch22Sharp
                 }
             }
 
-            double[] yZscored = new double[y.Length];
-            Stats.zscore_norm2(y, yZscored);
-            Span<double> yWork = yZscored;
-
-            int tau = co_firstzero(yWork, yWork.Length);
+            int tau = co_firstzero(y, y.Length);
             if (tau > y.Length / 10)
             {
                 tau = (int)Math.Floor(y.Length / 10.0);
             }
 
-            if (tau <= 0 || yWork.Length - tau - 1 <= 0)
+            if (tau <= 0 || y.Length - tau - 1 <= 0)
             {
                 return 0.0;
             }
 
-            int validLength = yWork.Length - tau - 1;
-            double[] d = new double[yWork.Length - tau];
+            int validLength = y.Length - tau - 1;
+            double[] d = new double[y.Length - tau];
             for (int i = 0; i < validLength; i++)
             {
-                double diff1 = yWork[i + 1] - yWork[i];
-                double diff2 = yWork[i + tau] - yWork[i + tau + 1];
+                double diff1 = y[i + 1] - y[i];
+                double diff2 = y[i + tau] - y[i + tau + 1];
                 d[i] = Math.Sqrt(diff1 * diff1 + diff2 * diff2);
                 if (double.IsNaN(d[i]))
                 {
@@ -283,17 +279,13 @@ namespace Catch22Sharp
                 return 0.0;
             }
 
-            double[] yZscored = new double[y.Length];
-            Stats.zscore_norm2(y, yZscored);
-            Span<double> yWork = yZscored;
-
-            double[] diffTemp = new double[yWork.Length - tau];
-            for (int i = 0; i < yWork.Length - tau; i++)
+            double[] diffTemp = new double[y.Length - tau];
+            for (int i = 0; i < y.Length - tau; i++)
             {
-                diffTemp[i] = Math.Pow(yWork[i + 1] - yWork[i], 3);
+                diffTemp[i] = Math.Pow(y[i + 1] - y[i], 3);
             }
 
-            return Stats.mean(diffTemp);
+            return Stats.mean(diffTemp.AsSpan());
         }
 
         public static double CO_HistogramAMI_even_2_5(Span<double> y)
@@ -313,21 +305,17 @@ namespace Catch22Sharp
                 return 0.0;
             }
 
-            double[] yZscored = new double[y.Length];
-            Stats.zscore_norm2(y, yZscored);
-            Span<double> yWork = yZscored;
-
-            int length = yWork.Length - tau;
+            int length = y.Length - tau;
             double[] y1 = new double[length];
             double[] y2 = new double[length];
             for (int i = 0; i < length; i++)
             {
-                y1[i] = yWork[i];
-                y2[i] = yWork[i + tau];
+                y1[i] = y[i];
+                y2[i] = y[i + tau];
             }
 
-            double maxValue = Stats.max_(yWork);
-            double minValue = Stats.min_(yWork);
+            double maxValue = Stats.max_(y);
+            double minValue = Stats.min_(y);
             double binStep = (maxValue - minValue + 0.2) / numBins;
             double[] binEdges = new double[numBins + 1];
             for (int i = 0; i < numBins + 1; i++)
