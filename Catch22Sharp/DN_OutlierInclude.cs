@@ -4,7 +4,7 @@ namespace Catch22Sharp
 {
     public static partial class Catch22
     {
-        public static double DN_OutlierInclude_np_001_mdrmd(Span<double> y, int sign)
+        public static double DN_OutlierInclude_np_001_mdrmd(ReadOnlySpan<double> y, int sign)
         {
             int size = y.Length;
 
@@ -118,17 +118,17 @@ namespace Catch22Sharp
             return outputScalar;
         }
 
-        public static double DN_OutlierInclude_p_001_mdrmd(Span<double> y)
+        public static double DN_OutlierInclude_p_001_mdrmd(ReadOnlySpan<double> y)
         {
             return DN_OutlierInclude_np_001_mdrmd(y, 1);
         }
 
-        public static double DN_OutlierInclude_n_001_mdrmd(Span<double> y)
+        public static double DN_OutlierInclude_n_001_mdrmd(ReadOnlySpan<double> y)
         {
             return DN_OutlierInclude_np_001_mdrmd(y, -1);
         }
 
-        public static double DN_OutlierInclude_abs_001(Span<double> y)
+        public static double DN_OutlierInclude_abs_001(ReadOnlySpan<double> y)
         {
             int size = y.Length;
             double inc = 0.01;

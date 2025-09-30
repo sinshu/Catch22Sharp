@@ -4,7 +4,7 @@ namespace Catch22Sharp
 {
     public static class Stats
     {
-        public static double min_(Span<double> a)
+        public static double min_(ReadOnlySpan<double> a)
         {
             int size = a.Length;
             double m = a[0];
@@ -18,7 +18,7 @@ namespace Catch22Sharp
             return m;
         }
 
-        public static double max_(Span<double> a)
+        public static double max_(ReadOnlySpan<double> a)
         {
             int size = a.Length;
             double m = a[0];
@@ -32,7 +32,7 @@ namespace Catch22Sharp
             return m;
         }
 
-        public static double mean(Span<double> a)
+        public static double mean(ReadOnlySpan<double> a)
         {
             int size = a.Length;
             double m = 0.0;
@@ -44,7 +44,7 @@ namespace Catch22Sharp
             return m;
         }
 
-        public static double sum(Span<double> a)
+        public static double sum(ReadOnlySpan<double> a)
         {
             int size = a.Length;
             double m = 0.0;
@@ -55,7 +55,7 @@ namespace Catch22Sharp
             return m;
         }
 
-        public static void cumsum(Span<double> a, Span<double> b)
+        public static void cumsum(ReadOnlySpan<double> a, Span<double> b)
         {
             int size = a.Length;
             b[0] = a[0];
@@ -66,7 +66,7 @@ namespace Catch22Sharp
             }
         }
 
-        public static void icumsum(Span<int> a, Span<int> b)
+        public static void icumsum(ReadOnlySpan<int> a, Span<int> b)
         {
             int size = a.Length;
             b[0] = a[0];
@@ -77,7 +77,7 @@ namespace Catch22Sharp
             }
         }
 
-        public static double isum(Span<int> a)
+        public static double isum(ReadOnlySpan<int> a)
         {
             int size = a.Length;
             double m = 0.0;
@@ -88,7 +88,7 @@ namespace Catch22Sharp
             return m;
         }
 
-        public static double median(Span<double> a)
+        public static double median(ReadOnlySpan<double> a)
         {
             int size = a.Length;
             double m;
@@ -108,7 +108,7 @@ namespace Catch22Sharp
             return m;
         }
 
-        public static double stddev(Span<double> a)
+        public static double stddev(ReadOnlySpan<double> a)
         {
             int size = a.Length;
             double m = mean(a);
@@ -121,7 +121,7 @@ namespace Catch22Sharp
             return sd;
         }
 
-        public static double cov(Span<double> x, Span<double> y)
+        public static double cov(ReadOnlySpan<double> x, ReadOnlySpan<double> y)
         {
             int size = x.Length;
             double covariance = 0;
@@ -136,7 +136,7 @@ namespace Catch22Sharp
             return covariance / (size - 1);
         }
 
-        public static double cov_mean(Span<double> x, Span<double> y)
+        public static double cov_mean(ReadOnlySpan<double> x, ReadOnlySpan<double> y)
         {
             int size = x.Length;
             double covariance = 0;
@@ -149,7 +149,7 @@ namespace Catch22Sharp
             return covariance / size;
         }
 
-        public static double corr(Span<double> x, Span<double> y)
+        public static double corr(ReadOnlySpan<double> x, ReadOnlySpan<double> y)
         {
             int size = x.Length;
             double nom = 0;
@@ -167,13 +167,13 @@ namespace Catch22Sharp
             return nom / Math.Sqrt(denomX * denomY);
         }
 
-        public static double autocorr_lag(Span<double> x, int lag)
+        public static double autocorr_lag(ReadOnlySpan<double> x, int lag)
         {
             int size = x.Length;
             return corr(x.Slice(0, size - lag), x.Slice(lag, size - lag));
         }
 
-        public static double autocov_lag(Span<double> x, int lag)
+        public static double autocov_lag(ReadOnlySpan<double> x, int lag)
         {
             int size = x.Length;
             return cov_mean(x.Slice(0, size - lag), x.Slice(lag, size - lag));
@@ -190,7 +190,7 @@ namespace Catch22Sharp
             }
         }
 
-        public static void zscore_norm2(Span<double> a, Span<double> b)
+        public static void zscore_norm2(ReadOnlySpan<double> a, Span<double> b)
         {
             int size = a.Length;
             double m = mean(a);
@@ -201,10 +201,10 @@ namespace Catch22Sharp
             }
         }
 
-        public static double moment(Span<double> a, int start, int end, int r)
+        public static double moment(ReadOnlySpan<double> a, int start, int end, int r)
         {
             int win_size = end - start + 1;
-            Span<double> window = a.Slice(start, win_size);
+            ReadOnlySpan<double> window = a.Slice(start, win_size);
             double m = mean(window);
             double mr = 0.0;
             for (int i = 0; i < win_size; i++)
@@ -216,7 +216,7 @@ namespace Catch22Sharp
             return mr;
         }
 
-        public static void diff(Span<double> a, Span<double> b)
+        public static void diff(ReadOnlySpan<double> a, Span<double> b)
         {
             int size = a.Length;
             for (int i = 1; i < size; i++)
@@ -225,13 +225,20 @@ namespace Catch22Sharp
             }
         }
 
-        public static int linreg(int n, Span<double> x, Span<double> y, out double m, out double b)
+        public static int linreg(ReadOnlySpan<double> x, ReadOnlySpan<double> y, out double m, out double b)
         {
             double sumx = 0.0;                      /* sum of x     */
             double sumx2 = 0.0;                     /* sum of x**2  */
             double sumxy = 0.0;                     /* sum of x * y */
             double sumy = 0.0;                      /* sum of y     */
             double sumy2 = 0.0;                     /* sum of y**2  */
+
+            if (x.Length != y.Length)
+            {
+                throw new ArgumentException("Span lengths must match.");
+            }
+
+            int n = x.Length;
 
             for (int i = 0; i < n; i++)
             {
@@ -264,7 +271,7 @@ namespace Catch22Sharp
             return 0;
         }
 
-        public static double norm_(Span<double> a)
+        public static double norm_(ReadOnlySpan<double> a)
         {
             int size = a.Length;
             double @out = 0.0;

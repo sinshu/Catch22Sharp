@@ -33,7 +33,7 @@ namespace Catch22Sharp
             return;
         }
 
-        public static double quantile(Span<double> y, double quant)
+        public static double quantile(ReadOnlySpan<double> y, double quant)
         {
             int size = y.Length;
             double quant_idx;
@@ -65,7 +65,7 @@ namespace Catch22Sharp
             return value;
         }
 
-        public static void binarize(Span<double> a, Span<int> b, string how)
+        public static void binarize(ReadOnlySpan<double> a, Span<int> b, string how)
         {
             double m = 0.0;
             if (how == "mean")
@@ -84,7 +84,7 @@ namespace Catch22Sharp
             return;
         }
 
-        public static double f_entropy(Span<double> a)
+        public static double f_entropy(ReadOnlySpan<double> a)
         {
             double f = 0.0;
             for (int i = 0; i < a.Length; i++)
@@ -98,7 +98,7 @@ namespace Catch22Sharp
             return -1 * f;
         }
 
-        public static void subset(Span<int> a, int start, int end, Span<int> b)
+        public static void subset(ReadOnlySpan<int> a, int start, int end, Span<int> b)
         {
             int j = 0;
             for (int i = start; i < end; i++)
