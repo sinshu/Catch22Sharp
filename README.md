@@ -24,7 +24,17 @@ The tests load the sample time series from `testData/` and ensure the port match
 
 ## Using the library
 
-(WIP) The library will eventually be published as a NuGet package.
+[The NuGet package](https://www.nuget.org/packages/Catch22Sharp) is available.
+
+```ps1
+Install-Package Catch22Sharp
+```
+
+All the classes are in the `Catch22Sharp` namespace.
+
+```cs
+using Catch22Sharp;
+```
 
 __Code example:__
 ```csharp
