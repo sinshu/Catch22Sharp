@@ -168,14 +168,38 @@ namespace Catch22Sharp
         }
 
         /// <summary>
-        /// doc comment here
+        /// Gets all computed feature values alongside their canonical names.
         /// </summary>
         /// <returns>
-        /// doc comment here
+        /// An array of tuples that pair each feature name with its computed value.
         /// </returns>
         public (string Name, double Value)[] GetNameValuePairs()
         {
-            throw new NotImplementedException();
+            return new (string Name, double Value)[22]
+            {
+                ("DN_HistogramMode_5", values[0]),
+                ("DN_HistogramMode_10", values[1]),
+                ("DN_OutlierInclude_p_001_mdrmd", values[2]),
+                ("DN_OutlierInclude_n_001_mdrmd", values[3]),
+                ("first1e_acf_tau", values[4]),
+                ("firstMin_acf", values[5]),
+                ("SP_Summaries_welch_rect_area_5_1", values[6]),
+                ("SP_Summaries_welch_rect_centroid", values[7]),
+                ("FC_LocalSimple_mean3_stderr", values[8]),
+                ("FC_LocalSimple_mean1_tauresrat", values[9]),
+                ("MD_hrv_classic_pnn40", values[10]),
+                ("SB_BinaryStats_mean_longstretch1", values[11]),
+                ("SB_BinaryStats_diff_longstretch0", values[12]),
+                ("SB_MotifThree_quantile_hh", values[13]),
+                ("CO_HistogramAMI_even_2_5", values[14]),
+                ("CO_trev_1_num", values[15]),
+                ("IN_AutoMutualInfoStats_40_gaussian_fmmi", values[16]),
+                ("SB_TransitionMatrix_3ac_sumdiagcov", values[17]),
+                ("PD_PeriodicityWang_th0_01", values[18]),
+                ("CO_Embed2_Dist_tau_d_expfit_meandiff", values[19]),
+                ("SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1", values[20]),
+                ("SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1", values[21]),
+            };
         }
 
         /// <inheritdoc/>
