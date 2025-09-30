@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using Catch22Sharp;
+﻿using Catch22Sharp;
 
 namespace Catch22SharpTest
 {

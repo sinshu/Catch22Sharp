@@ -3,7 +3,7 @@ using Catch22Sharp;
 namespace Catch22SharpTest
 {
     [TestClass]
-    public class DN_HistogramMode_10_Tests
+    public class DN_HistogramMode_10
     {
         [TestMethod]
         public void Test1()
