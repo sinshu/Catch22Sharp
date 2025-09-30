@@ -26,8 +26,8 @@ The tests load the sample time series from `testData/` and ensure the port match
 
 [The NuGet package](https://www.nuget.org/packages/Catch22Sharp) is available.
 
-```ps1
-Install-Package Catch22Sharp
+```bash
+dotnet add package Catch22Sharp
 ```
 
 All the classes are in the `Catch22Sharp` namespace.
