@@ -36,21 +36,16 @@ namespace Catch22Sharp
             }
 
             double[] yWork = new double[y.Length];
-            Stats.zscore_norm2(y, yWork.AsSpan());
 
             int tot = 0;
-            for (int i = 0; i < yWork.Length; i++)
+            for (int i = 0; i < y.Length; i++)
             {
-                yWork[i] = sign * yWork[i];
-                if (yWork[i] >= 0)
+                double value = sign * y[i];
+                yWork[i] = value;
+                if (value >= 0)
                 {
                     tot += 1;
                 }
-            }
-
-            if (tot == 0)
-            {
-                return 0.0;
             }
 
             double maxVal = Stats.max_(yWork.AsSpan());

@@ -88,21 +88,17 @@ namespace Catch22Sharp
                 return 0.0;
             }
 
-            double[] yZscored = new double[ySpan.Length];
-            Stats.zscore_norm2(ySpan, yZscored.AsSpan());
-            Span<double> yWork = yZscored.AsSpan();
-
             double[] res = new double[residualLength];
             for (int i = 0; i < residualLength; i++)
             {
                 double yest = 0.0;
                 for (int j = 0; j < train_length; j++)
                 {
-                    yest += yWork[i + j];
+                    yest += ySpan[i + j];
                 }
 
                 yest /= train_length;
-                res[i] = yWork[i + train_length] - yest;
+                res[i] = ySpan[i + train_length] - yest;
             }
 
             double output = Stats.stddev(res.AsSpan());

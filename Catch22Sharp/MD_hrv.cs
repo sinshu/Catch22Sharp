@@ -23,11 +23,8 @@ namespace Catch22Sharp
 
             const int pNNx = 40;
 
-            double[] yWork = new double[ySpan.Length];
-            Stats.zscore_norm2(ySpan, yWork.AsSpan());
-
-            double[] Dy = new double[yWork.Length - 1];
-            Stats.diff(yWork.AsSpan(), Dy.AsSpan());
+            double[] Dy = new double[ySpan.Length - 1];
+            Stats.diff(ySpan, Dy.AsSpan());
 
             double pnn40 = 0.0;
             for (int i = 0; i < Dy.Length; i++)
