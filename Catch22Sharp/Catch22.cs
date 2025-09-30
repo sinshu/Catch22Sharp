@@ -96,14 +96,41 @@ namespace Catch22Sharp
         }
 
         /// <inheritdoc/>
-        public double this[int index] => values[index];
+        public double this[int index]
+        {
+            get
+            {
+                if ((uint)index >= (uint)values.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                return values[index];
+            }
+        }
 
         /// <summary>
         /// Retrieves the feature value identified by the specified feature name.
         /// </summary>
         /// <param name="featureName">The canonical or short feature identifier.</param>
         /// <returns>The computed feature value.</returns>
-        public double this[string featureName] => values[nameToIndex[featureName]];
+        public double this[string featureName]
+        {
+            get
+            {
+                if (featureName is null)
+                {
+                    throw new ArgumentNullException(nameof(featureName));
+                }
+
+                if (!nameToIndex.TryGetValue(featureName, out var featureIndex))
+                {
+                    throw new ArgumentException($"Unknown feature name: {featureName}", nameof(featureName));
+                }
+
+                return values[featureIndex];
+            }
+        }
 
         /// <inheritdoc/>
         public IEnumerator<double> GetEnumerator()
