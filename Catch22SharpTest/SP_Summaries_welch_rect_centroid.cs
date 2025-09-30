@@ -36,5 +36,21 @@ namespace Catch22SharpTest
             var expected = TestData.TestSinusoidOutput["SP_Summaries_welch_rect_centroid"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
+
+        [TestMethod]
+        public void TestRandom()
+        {
+            var actual = Catch22.SP_Summaries_welch_rect_centroid(TestData.TestRandom);
+            var expected = TestData.TestRandomOutput["SP_Summaries_welch_rect_centroid"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
+        public void TestWave()
+        {
+            var actual = Catch22.SP_Summaries_welch_rect_centroid(TestData.TestWave);
+            var expected = TestData.TestWaveOutput["SP_Summaries_welch_rect_centroid"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
     }
 }

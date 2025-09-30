@@ -36,5 +36,21 @@ namespace Catch22SharpTest
             var expected = TestData.TestSinusoidOutput["MD_hrv_classic_pnn40"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
+
+        [TestMethod]
+        public void TestRandom()
+        {
+            var actual = Catch22.MD_hrv_classic_pnn40(TestData.TestRandom);
+            var expected = TestData.TestRandomOutput["MD_hrv_classic_pnn40"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
+        public void TestWave()
+        {
+            var actual = Catch22.MD_hrv_classic_pnn40(TestData.TestWave);
+            var expected = TestData.TestWaveOutput["MD_hrv_classic_pnn40"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
     }
 }

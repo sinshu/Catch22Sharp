@@ -36,5 +36,21 @@ namespace Catch22SharpTest
             var expected = TestData.TestSinusoidOutput["SB_BinaryStats_mean_longstretch1"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
+
+        [TestMethod]
+        public void TestRandom()
+        {
+            var actual = Catch22.SB_BinaryStats_mean_longstretch1(TestData.TestRandom);
+            var expected = TestData.TestRandomOutput["SB_BinaryStats_mean_longstretch1"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
+        public void TestWave()
+        {
+            var actual = Catch22.SB_BinaryStats_mean_longstretch1(TestData.TestWave);
+            var expected = TestData.TestWaveOutput["SB_BinaryStats_mean_longstretch1"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
     }
 }

@@ -36,5 +36,21 @@ namespace Catch22SharpTest
             var expected = TestData.TestSinusoidOutput["SB_MotifThree_quantile_hh"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
+
+        [TestMethod]
+        public void TestRandom()
+        {
+            var actual = Catch22.SB_MotifThree_quantile_hh(TestData.TestRandom);
+            var expected = TestData.TestRandomOutput["SB_MotifThree_quantile_hh"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
+        public void TestWave()
+        {
+            var actual = Catch22.SB_MotifThree_quantile_hh(TestData.TestWave);
+            var expected = TestData.TestWaveOutput["SB_MotifThree_quantile_hh"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
     }
 }

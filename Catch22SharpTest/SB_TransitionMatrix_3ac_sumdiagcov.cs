@@ -36,5 +36,21 @@ namespace Catch22SharpTest
             var expected = TestData.TestSinusoidOutput["SB_TransitionMatrix_3ac_sumdiagcov"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
+
+        [TestMethod]
+        public void TestRandom()
+        {
+            var actual = Catch22.SB_TransitionMatrix_3ac_sumdiagcov(TestData.TestRandom);
+            var expected = TestData.TestRandomOutput["SB_TransitionMatrix_3ac_sumdiagcov"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
+        public void TestWave()
+        {
+            var actual = Catch22.SB_TransitionMatrix_3ac_sumdiagcov(TestData.TestWave);
+            var expected = TestData.TestWaveOutput["SB_TransitionMatrix_3ac_sumdiagcov"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
     }
 }

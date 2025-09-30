@@ -36,5 +36,21 @@ namespace Catch22SharpTest
             var expected = TestData.TestSinusoidOutput["IN_AutoMutualInfoStats_40_gaussian_fmmi"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
+
+        [TestMethod]
+        public void TestRandom()
+        {
+            var actual = Catch22.IN_AutoMutualInfoStats_40_gaussian_fmmi(TestData.TestRandom);
+            var expected = TestData.TestRandomOutput["IN_AutoMutualInfoStats_40_gaussian_fmmi"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
+        public void TestWave()
+        {
+            var actual = Catch22.IN_AutoMutualInfoStats_40_gaussian_fmmi(TestData.TestWave);
+            var expected = TestData.TestWaveOutput["IN_AutoMutualInfoStats_40_gaussian_fmmi"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
     }
 }

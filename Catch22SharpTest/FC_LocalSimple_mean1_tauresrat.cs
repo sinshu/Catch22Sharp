@@ -36,5 +36,21 @@ namespace Catch22SharpTest
             var expected = TestData.TestSinusoidOutput["FC_LocalSimple_mean1_tauresrat"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
+
+        [TestMethod]
+        public void TestRandom()
+        {
+            var actual = Catch22.FC_LocalSimple_mean1_tauresrat(TestData.TestRandom);
+            var expected = TestData.TestRandomOutput["FC_LocalSimple_mean1_tauresrat"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
+        public void TestWave()
+        {
+            var actual = Catch22.FC_LocalSimple_mean1_tauresrat(TestData.TestWave);
+            var expected = TestData.TestWaveOutput["FC_LocalSimple_mean1_tauresrat"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
     }
 }
