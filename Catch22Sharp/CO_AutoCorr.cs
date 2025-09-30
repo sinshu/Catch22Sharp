@@ -283,10 +283,14 @@ namespace Catch22Sharp
                 return 0.0;
             }
 
-            double[] diffTemp = new double[y.Length - tau];
-            for (int i = 0; i < y.Length - tau; i++)
+            double[] yZscored = new double[y.Length];
+            Stats.zscore_norm2(y, yZscored);
+            Span<double> yWork = yZscored;
+
+            double[] diffTemp = new double[yWork.Length - tau];
+            for (int i = 0; i < yWork.Length - tau; i++)
             {
-                diffTemp[i] = Math.Pow(y[i + 1] - y[i], 3);
+                diffTemp[i] = Math.Pow(yWork[i + 1] - yWork[i], 3);
             }
 
             return Stats.mean(diffTemp);
@@ -309,17 +313,21 @@ namespace Catch22Sharp
                 return 0.0;
             }
 
-            int length = y.Length - tau;
+            double[] yZscored = new double[y.Length];
+            Stats.zscore_norm2(y, yZscored);
+            Span<double> yWork = yZscored;
+
+            int length = yWork.Length - tau;
             double[] y1 = new double[length];
             double[] y2 = new double[length];
             for (int i = 0; i < length; i++)
             {
-                y1[i] = y[i];
-                y2[i] = y[i + tau];
+                y1[i] = yWork[i];
+                y2[i] = yWork[i + tau];
             }
 
-            double maxValue = Stats.max_(y);
-            double minValue = Stats.min_(y);
+            double maxValue = Stats.max_(yWork);
+            double minValue = Stats.min_(yWork);
             double binStep = (maxValue - minValue + 0.2) / numBins;
             double[] binEdges = new double[numBins + 1];
             for (int i = 0; i < numBins + 1; i++)
