@@ -95,7 +95,13 @@ namespace Catch22Sharp
             values[21] = SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1(y);
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Gets the feature value corresponding to the specified feature index.
+        /// </summary>
+        /// <param name="index">The zero-based index of the feature.</param>
+        /// <returns>
+        /// The computed feature value.
+        /// </returns>
         public double this[int index]
         {
             get
@@ -110,10 +116,12 @@ namespace Catch22Sharp
         }
 
         /// <summary>
-        /// Retrieves the feature value identified by the specified feature name.
+        /// Gets the feature value corresponding to the specified feature name.
         /// </summary>
         /// <param name="featureName">The canonical or short feature identifier.</param>
-        /// <returns>The computed feature value.</returns>
+        /// <returns>
+        /// The computed feature value.
+        /// </returns>
         public double this[string featureName]
         {
             get
