@@ -36,5 +36,21 @@ namespace Catch22SharpTest
             var expected = TestData.TestSinusoidOutput["CO_FirstMin_ac"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
+
+        [TestMethod]
+        public void TestRandom()
+        {
+            var actual = Catch22.CO_FirstMin_ac(TestData.TestRandom);
+            var expected = TestData.TestRandomOutput["CO_FirstMin_ac"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
+        public void TestWave()
+        {
+            var actual = Catch22.CO_FirstMin_ac(TestData.TestWave);
+            var expected = TestData.TestWaveOutput["CO_FirstMin_ac"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
     }
 }

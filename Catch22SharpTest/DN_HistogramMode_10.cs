@@ -36,5 +36,21 @@ namespace Catch22SharpTest
             var expected = TestData.TestSinusoidOutput["DN_HistogramMode_10"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
+
+        [TestMethod]
+        public void TestRandom()
+        {
+            var actual = Catch22.DN_HistogramMode_10(TestData.TestRandom);
+            var expected = TestData.TestRandomOutput["DN_HistogramMode_10"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
+        public void TestWave()
+        {
+            var actual = Catch22.DN_HistogramMode_10(TestData.TestWave);
+            var expected = TestData.TestWaveOutput["DN_HistogramMode_10"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
     }
 }

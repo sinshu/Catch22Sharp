@@ -36,5 +36,21 @@ namespace Catch22SharpTest
             var expected = TestData.TestSinusoidOutput["SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1"];
             Assert.AreEqual(expected, actual, 1.0E-6);
         }
+
+        [TestMethod]
+        public void TestRandom()
+        {
+            var actual = Catch22.SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1(TestData.TestRandom);
+            var expected = TestData.TestRandomOutput["SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
+
+        [TestMethod]
+        public void TestWave()
+        {
+            var actual = Catch22.SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1(TestData.TestWave);
+            var expected = TestData.TestWaveOutput["SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1"];
+            Assert.AreEqual(expected, actual, 1.0E-6);
+        }
     }
 }
