@@ -6,6 +6,7 @@ namespace Catch22Sharp
     {
         public static double DN_HistogramMode_10(Span<double> y)
         {
+            // NaN check
             for (int i = 0; i < y.Length; i++)
             {
                 if (double.IsNaN(y[i]))
@@ -16,30 +17,30 @@ namespace Catch22Sharp
 
             const int nBins = 10;
 
-            int[] histCounts = new int[nBins];
-            double[] binEdges = new double[nBins + 1];
-            HistCounts.histcounts_preallocated(y, nBins, histCounts.AsSpan(), binEdges.AsSpan());
+            HistCounts.histcounts(y, nBins, out int[] histCounts, out double[] binEdges);
 
             double maxCount = 0;
             int numMaxs = 1;
-            double outputValue = 0;
+            double @out = 0;
             for (int i = 0; i < nBins; i++)
             {
-                double binMean = (binEdges[i] + binEdges[i + 1]) * 0.5;
+                // printf("binInd=%i, binCount=%i, binEdge=%1.3f \\n", i, histCounts[i], binEdges[i]);
+
                 if (histCounts[i] > maxCount)
                 {
                     maxCount = histCounts[i];
                     numMaxs = 1;
-                    outputValue = binMean;
+                    @out = (binEdges[i] + binEdges[i + 1]) * 0.5;
                 }
                 else if (histCounts[i] == maxCount)
                 {
                     numMaxs += 1;
-                    outputValue += binMean;
+                    @out += (binEdges[i] + binEdges[i + 1]) * 0.5;
                 }
             }
+            @out = @out / numMaxs;
 
-            return outputValue / numMaxs;
+            return @out;
         }
     }
 }

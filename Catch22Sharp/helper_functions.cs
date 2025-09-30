@@ -4,102 +4,108 @@ namespace Catch22Sharp
 {
     public static class HelperFunctions
     {
-        public static void sort(Span<double> values)
+        // wrapper for qsort for array of doubles. Sorts in-place
+        public static void sort(Span<double> y)
         {
-            double[] copy = values.ToArray();
-            Array.Sort(copy);
-            copy.AsSpan().CopyTo(values);
-        }
-
-        public static void linspace(double start, double end, int numGroups, Span<double> output)
-        {
-            if (numGroups <= 0)
-            {
-                return;
-            }
-
-            double stepSize = numGroups == 1 ? 0.0 : (end - start) / (numGroups - 1);
-            for (int i = 0; i < numGroups; i++)
-            {
-                output[i] = start;
-                start += stepSize;
-            }
-        }
-
-        public static double quantile(Span<double> values, double quant)
-        {
-            int size = values.Length;
-            if (size == 0)
-            {
-                return double.NaN;
-            }
-
-            double[] tmp = values.ToArray();
+            double[] tmp = y.ToArray();
             Array.Sort(tmp);
 
-            double q = 0.5 / size;
+            /*
+            for(int i=0; i < size; i++){
+                printf("y[%i]=%1.4f\n", i, y[i]);
+            }
+            for(int i=0; i < size; i++){
+                printf("sorted[%i]=%1.4f\n", i, tmp[i]);
+            }
+             */
+            tmp.AsSpan().CopyTo(y);
+        }
+
+        // linearly spaced vector
+        public static void linspace(double start, double end, int num_groups, Span<double> @out)
+        {
+            double step_size = (end - start) / (num_groups - 1);
+            for (int i = 0; i < num_groups; i++)
+            {
+                @out[i] = start;
+                start += step_size;
+            }
+            return;
+        }
+
+        public static double quantile(Span<double> y, double quant)
+        {
+            int size = y.Length;
+            double quant_idx;
+            double q;
+            double value;
+            int idx_left;
+            int idx_right;
+            double[] tmp = y.ToArray();
+            Array.Sort(tmp);
+
+            // out of range limit?
+            q = 0.5 / size;
             if (quant < q)
             {
-                return tmp[0];
+                value = tmp[0];
+                return value;
             }
 
             if (quant > 1 - q)
             {
-                return tmp[size - 1];
+                value = tmp[size - 1];
+                return value;
             }
 
-            double quantIdx = size * quant - 0.5;
-            int idxLeft = (int)Math.Floor(quantIdx);
-            int idxRight = (int)Math.Ceiling(quantIdx);
-            if (idxRight == idxLeft)
-            {
-                return tmp[idxLeft];
-            }
-
-            double value = tmp[idxLeft] + (quantIdx - idxLeft) * (tmp[idxRight] - tmp[idxLeft]) / (idxRight - idxLeft);
+            quant_idx = size * quant - 0.5;
+            idx_left = (int)Math.Floor(quant_idx);
+            idx_right = (int)Math.Ceiling(quant_idx);
+            value = tmp[idx_left] + (quant_idx - idx_left) * (tmp[idx_right] - tmp[idx_left]) / (idx_right - idx_left);
             return value;
         }
 
-        public static void binarize(Span<double> input, Span<int> output, string how)
+        public static void binarize(Span<double> a, Span<int> b, string how)
         {
-            double threshold = 0.0;
+            double m = 0.0;
             if (how == "mean")
             {
-                threshold = Stats.mean(input);
+                m = Stats.mean(a);
             }
             else if (how == "median")
             {
-                threshold = Stats.median(input);
+                m = Stats.median(a);
             }
 
-            for (int i = 0; i < input.Length && i < output.Length; i++)
+            for (int i = 0; i < a.Length; i++)
             {
-                output[i] = input[i] > threshold ? 1 : 0;
+                b[i] = a[i] > m ? 1 : 0;
             }
+            return;
         }
 
-        public static double f_entropy(Span<double> input)
+        public static double f_entropy(Span<double> a)
         {
-            double entropy = 0.0;
-            for (int i = 0; i < input.Length; i++)
+            double f = 0.0;
+            for (int i = 0; i < a.Length; i++)
             {
-                double value = input[i];
-                if (value > 0)
+                if (a[i] > 0)
                 {
-                    entropy += value * Math.Log(value);
+                    f += a[i] * Math.Log(a[i]);
                 }
             }
 
-            return -entropy;
+            return -1 * f;
         }
 
-        public static void subset(Span<int> input, int start, int end, Span<int> output)
+        public static void subset(Span<int> a, int start, int end, Span<int> b)
         {
             int j = 0;
-            for (int i = start; i < end && j < output.Length; i++)
+            for (int i = start; i < end; i++)
             {
-                output[j++] = input[i];
+                b[j++] = a[i];
             }
+            return;
         }
     }
 }

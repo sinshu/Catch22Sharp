@@ -6,7 +6,10 @@ namespace Catch22Sharp
     {
         public static double DN_OutlierInclude_np_001_mdrmd(Span<double> y, int sign)
         {
-            for (int i = 0; i < y.Length; i++)
+            int size = y.Length;
+
+            // NaN check
+            for (int i = 0; i < size; i++)
             {
                 if (double.IsNaN(y[i]))
                 {
@@ -14,77 +17,83 @@ namespace Catch22Sharp
                 }
             }
 
-            if (y.Length == 0)
-            {
-                return 0.0;
-            }
-
             double inc = 0.01;
+            int tot = 0;
+            double[] yWork = new double[size];
+
+            // apply sign and check constant time series
             bool constantFlag = true;
-            for (int i = 1; i < y.Length; i++)
+            for (int i = 0; i < size; i++)
             {
                 if (y[i] != y[0])
                 {
                     constantFlag = false;
-                    break;
                 }
-            }
 
-            if (constantFlag)
-            {
-                return 0.0;
-            }
+                // apply sign, save in new variable
+                yWork[i] = sign * y[i];
 
-            double[] yWork = new double[y.Length];
-
-            int tot = 0;
-            for (int i = 0; i < y.Length; i++)
-            {
-                double value = sign * y[i];
-                yWork[i] = value;
-                if (value >= 0)
+                // count pos/ negs
+                if (yWork[i] >= 0)
                 {
                     tot += 1;
                 }
             }
+            if (constantFlag)
+            {
+                return 0;
+            }
 
+            // find maximum (or minimum, depending on sign)
             double maxVal = Stats.max_(yWork.AsSpan());
+
+            // maximum value too small? return 0
             if (maxVal < inc)
             {
-                return 0.0;
+                return 0;
             }
 
             int nThresh = (int)(maxVal / inc) + 1;
-            double[] r = new double[y.Length];
+
+            // save the indices where y > threshold
+            double[] r = new double[size];
+
+            // save the median over indices with absolute value > threshold
             double[] msDti1 = new double[nThresh];
             double[] msDti3 = new double[nThresh];
             double[] msDti4 = new double[nThresh];
 
             for (int j = 0; j < nThresh; j++)
             {
+                //printf("j=%i, thr=%1.3f\\n", j, j*inc);
+
                 int highSize = 0;
-                for (int i = 0; i < y.Length; i++)
+
+                for (int i = 0; i < size; i++)
                 {
                     if (yWork[i] >= j * inc)
                     {
                         r[highSize] = i + 1;
+                        //printf("r[%i]=%1.f \\n", highSize, r[highSize]);
                         highSize += 1;
                     }
                 }
 
+                // intervals between high-values
                 double[] dtExc = new double[Math.Max(0, highSize - 1)];
+
                 for (int i = 0; i < highSize - 1; i++)
                 {
+                    //printf("i=%i, r[i+1]=%1.f, r[i]=%1.f \\n", i, r[i+1], r[i]);
                     dtExc[i] = r[i + 1] - r[i];
                 }
 
-                msDti1[j] = highSize > 1
-                    ? Stats.mean(dtExc.AsSpan(0, highSize - 1))
-                    : double.NaN;
+                msDti1[j] = highSize > 1 ? Stats.mean(dtExc.AsSpan(0, highSize - 1)) : double.NaN;
                 msDti3[j] = (highSize - 1) * 100.0 / tot;
-                msDti4[j] = highSize > 0
-                    ? HelperFunctions.quantile(r.AsSpan(0, highSize), 0.5) / (y.Length / 2.0) - 1
-                    : 0.0;
+                msDti4[j] = highSize > 0 ? Stats.median(r.AsSpan(0, highSize)) / (size / 2.0) - 1 : 0.0;
+
+                //printf("msDti1[%i] = %1.3f, msDti13[%i] = %1.3f, msDti4[%i] = %1.3f\\n",
+                //       j, msDti1[j], j, msDti3[j], j, msDti4[j]);
             }
 
             int trimthr = 2;
@@ -96,21 +105,16 @@ namespace Catch22Sharp
                 {
                     mj = i;
                 }
-
                 if (double.IsNaN(msDti1[nThresh - 1 - i]))
                 {
                     fbi = nThresh - 1 - i;
                 }
             }
 
-            int trimLimit = Math.Min(mj, fbi);
-            if (trimLimit < 0)
-            {
-                return 0.0;
-            }
+            double outputScalar;
+            int trimLimit = mj < fbi ? mj : fbi;
+            outputScalar = Stats.median(msDti4.AsSpan(0, trimLimit + 1));
 
-            Span<double> trimSpan = msDti4.AsSpan(0, trimLimit + 1);
-            double outputScalar = HelperFunctions.quantile(trimSpan, 0.5);
             return outputScalar;
         }
 
@@ -126,41 +130,51 @@ namespace Catch22Sharp
 
         public static double DN_OutlierInclude_abs_001(Span<double> y)
         {
+            int size = y.Length;
             double inc = 0.01;
             double maxAbs = 0;
-            double[] yAbs = new double[y.Length];
-            for (int i = 0; i < y.Length; i++)
+            double[] yAbs = new double[size];
+
+            for (int i = 0; i < size; i++)
             {
-                double value = Math.Abs(y[i]);
-                yAbs[i] = value;
-                if (value > maxAbs)
+                // yAbs[i] = (y[i] > 0) ? y[i] : -y[i];
+                yAbs[i] = Math.Abs(y[i]);
+
+                if (yAbs[i] > maxAbs)
                 {
-                    maxAbs = value;
+                    maxAbs = yAbs[i];
                 }
             }
 
             int nThresh = (int)(maxAbs / inc) + 1;
-            double[] highInds = new double[y.Length];
+
+            // save the indices where y > threshold
+            double[] highInds = new double[size];
+
+            // save the median over indices with absolute value > threshold
             double[] msDti3 = new double[nThresh];
             double[] msDti4 = new double[nThresh];
 
             for (int j = 0; j < nThresh; j++)
             {
                 int highSize = 0;
-                for (int i = 0; i < y.Length; i++)
+
+                for (int i = 0; i < size; i++)
                 {
                     if (yAbs[i] >= j * inc)
                     {
+                        // fprintf(stdout, "%i, ", i);
+
                         highInds[highSize] = i;
                         highSize += 1;
                     }
                 }
 
-                double medianOut = highSize > 0
-                    ? HelperFunctions.quantile(highInds.AsSpan(0, highSize), 0.5)
-                    : 0.0;
-                msDti3[j] = y.Length > 0 ? (highSize - 1) * 100.0 / y.Length : 0.0;
-                msDti4[j] = y.Length > 0 ? medianOut / (y.Length / 2.0) - 1 : 0.0;
+                // median
+                double medianOut = Stats.median(highInds.AsSpan(0, highSize));
+
+                msDti3[j] = (highSize - 1) * 100.0 / size;
+                msDti4[j] = medianOut / (size / 2.0) - 1;
             }
 
             int trimthr = 2;
@@ -173,8 +187,8 @@ namespace Catch22Sharp
                 }
             }
 
-            Span<double> trim = msDti4.AsSpan(0, mj);
-            double outputScalar = HelperFunctions.quantile(trim, 0.5);
+            double outputScalar = Stats.median(msDti4.AsSpan(0, mj));
+
             return outputScalar;
         }
     }

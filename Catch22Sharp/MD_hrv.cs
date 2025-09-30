@@ -6,9 +6,10 @@ namespace Catch22Sharp
     {
         public static double MD_hrv_classic_pnn40(Span<double> y, int size)
         {
-            Span<double> ySpan = size < y.Length ? y.Slice(0, size) : y;
+            Span<double> ySpan = y.Slice(0, size);
 
-            for (int i = 0; i < ySpan.Length; i++)
+            // NaN check
+            for (int i = 0; i < size; i++)
             {
                 if (double.IsNaN(ySpan[i]))
                 {
@@ -16,26 +17,22 @@ namespace Catch22Sharp
                 }
             }
 
-            if (ySpan.Length <= 1)
-            {
-                return double.NaN;
-            }
-
             const int pNNx = 40;
 
-            double[] Dy = new double[ySpan.Length - 1];
+            // compute diff
+            double[] Dy = new double[size - 1];
             Stats.diff(ySpan, Dy.AsSpan());
 
-            double pnn40 = 0.0;
-            for (int i = 0; i < Dy.Length; i++)
+            double pnn40 = 0;
+            for (int i = 0; i < size - 1; i++)
             {
-                if (Math.Abs(Dy[i]) * 1000.0 > pNNx)
+                if (Math.Abs(Dy[i]) * 1000 > pNNx)
                 {
-                    pnn40 += 1.0;
+                    pnn40 += 1;
                 }
             }
 
-            return pnn40 / (ySpan.Length - 1);
+            return pnn40 / (size - 1);
         }
     }
 }

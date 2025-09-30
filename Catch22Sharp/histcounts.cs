@@ -6,36 +6,30 @@ namespace Catch22Sharp
     {
         public static int num_bins_auto(Span<double> y)
         {
-            if (y.Length == 0)
-            {
-                return 0;
-            }
+            int size = y.Length;
 
             double maxVal = Stats.max_(y);
             double minVal = Stats.min_(y);
-            double std = Stats.stddev(y);
 
-            if (std < 0.001)
+            if (Stats.stddev(y) < 0.001)
             {
                 return 0;
             }
 
-            double denominator = 3.5 * std / Math.Pow(y.Length, 1.0 / 3.0);
-            if (denominator == 0.0)
-            {
-                return 0;
-            }
-
-            double bins = (maxVal - minVal) / denominator;
-            return (int)Math.Ceiling(bins);
+            return (int)Math.Ceiling((maxVal - minVal) / (3.5 * Stats.stddev(y) / Math.Pow(size, 1 / 3.0)));
         }
 
-        public static void histcounts_preallocated(Span<double> y, int nBins, Span<int> binCounts, Span<double> binEdges)
+        public static int histcounts_preallocated(Span<double> y, int nBins, Span<int> binCounts, Span<double> binEdges)
         {
+            int size = y.Length;
+
+            // check min and max of input array
             double minVal = double.MaxValue;
-            double maxVal = double.MinValue;
-            for (int i = 0; i < y.Length; i++)
+            double maxVal = -double.MaxValue;
+            for (int i = 0; i < size; i++)
             {
+                // printf("histcountInput %i: %1.3f\\n", i, y[i]);
+
                 if (y[i] < minVal)
                 {
                     minVal = y[i];
@@ -46,17 +40,18 @@ namespace Catch22Sharp
                 }
             }
 
-            double binStep = nBins != 0 ? (maxVal - minVal) / nBins : 0.0;
+            // and derive bin width from it
+            double binStep = (maxVal - minVal) / nBins;
 
+            // variable to store counted occurances in
             for (int i = 0; i < nBins; i++)
             {
                 binCounts[i] = 0;
             }
 
-            for (int i = 0; i < y.Length; i++)
+            for (int i = 0; i < size; i++)
             {
-                double ratio = binStep != 0.0 ? (y[i] - minVal) / binStep : 0.0;
-                int binInd = (int)ratio;
+                int binInd = (int)((y[i] - minVal) / binStep);
                 if (binInd < 0)
                 {
                     binInd = 0;
@@ -65,25 +60,37 @@ namespace Catch22Sharp
                 {
                     binInd = nBins - 1;
                 }
-
-                if (binInd >= 0 && binInd < nBins)
-                {
-                    binCounts[binInd] += 1;
-                }
+                //printf("histcounts, i=%i, binInd=%i, nBins=%i\\n", i, binInd, nBins);
+                binCounts[binInd] += 1;
             }
 
             for (int i = 0; i < nBins + 1; i++)
             {
                 binEdges[i] = i * binStep + minVal;
             }
+
+            /*
+             // debug
+             for(i=0;i<nBins;i++)
+             {
+             printf("%i: count %i, edge %1.3f\\n", i, binCounts[i], binEdges[i]);
+             }
+             */
+
+            return 0;
         }
 
         public static int histcounts(Span<double> y, int nBins, out int[] binCounts, out double[] binEdges)
         {
+            int size = y.Length;
+
+            // check min and max of input array
             double minVal = double.MaxValue;
-            double maxVal = double.MinValue;
-            for (int i = 0; i < y.Length; i++)
+            double maxVal = -double.MaxValue;
+            for (int i = 0; i < size; i++)
             {
+                // printf("histcountInput %i: %1.3f\\n", i, y[i]);
+
                 if (y[i] < minVal)
                 {
                     minVal = y[i];
@@ -94,23 +101,25 @@ namespace Catch22Sharp
                 }
             }
 
+            // if no number of bins given, choose spaces automatically
             if (nBins <= 0)
             {
-                nBins = num_bins_auto(y);
+                nBins = (int)Math.Ceiling((maxVal - minVal) / (3.5 * Stats.stddev(y) / Math.Pow(size, 1 / 3.0)));
             }
 
-            double binStep = nBins != 0 ? (maxVal - minVal) / nBins : 0.0;
+            // and derive bin width from it
+            double binStep = (maxVal - minVal) / nBins;
 
-            binCounts = new int[Math.Max(nBins, 0)];
-            for (int i = 0; i < binCounts.Length; i++)
+            // variable to store counted occurances in
+            binCounts = new int[nBins];
+            for (int i = 0; i < nBins; i++)
             {
                 binCounts[i] = 0;
             }
 
-            for (int i = 0; i < y.Length; i++)
+            for (int i = 0; i < size; i++)
             {
-                double ratio = binStep != 0.0 ? (y[i] - minVal) / binStep : 0.0;
-                int binInd = (int)ratio;
+                int binInd = (int)((y[i] - minVal) / binStep);
                 if (binInd < 0)
                 {
                     binInd = 0;
@@ -119,28 +128,38 @@ namespace Catch22Sharp
                 {
                     binInd = nBins - 1;
                 }
-
-                if (nBins > 0 && binInd >= 0 && binInd < nBins)
-                {
-                    binCounts[binInd] += 1;
-                }
+                binCounts[binInd] += 1;
             }
 
-            binEdges = new double[Math.Max(nBins, 0) + 1];
-            for (int i = 0; i < binEdges.Length; i++)
+            binEdges = new double[nBins + 1];
+            for (int i = 0; i < nBins + 1; i++)
             {
                 binEdges[i] = i * binStep + minVal;
             }
+
+            /*
+            // debug
+            for(i=0;i<nBins;i++)
+            {
+                printf("%i: count %i, edge %1.3f\\n", i, binCounts[i], binEdges[i]);
+            }
+            */
 
             return nBins;
         }
 
         public static int[] histbinassign(Span<double> y, Span<double> binEdges)
         {
-            int[] binIdentity = new int[y.Length];
-            for (int i = 0; i < y.Length; i++)
+            int size = y.Length;
+
+            // variable to store counted occurances in
+            int[] binIdentity = new int[size];
+            for (int i = 0; i < size; i++)
             {
+                // if not in any bin -> 0
                 binIdentity[i] = 0;
+
+                // go through bin edges
                 for (int j = 0; j < binEdges.Length; j++)
                 {
                     if (y[i] < binEdges[j])
@@ -156,10 +175,19 @@ namespace Catch22Sharp
 
         public static int[] histcount_edges(Span<double> y, Span<double> binEdges)
         {
-            int[] histcounts = new int[binEdges.Length];
-            for (int i = 0; i < y.Length; i++)
+            int size = y.Length;
+            int nEdges = binEdges.Length;
+
+            int[] histcounts = new int[nEdges];
+            for (int i = 0; i < nEdges; i++)
             {
-                for (int j = 0; j < binEdges.Length; j++)
+                histcounts[i] = 0;
+            }
+
+            for (int i = 0; i < size; i++)
+            {
+                // go through bin edges
+                for (int j = 0; j < nEdges; j++)
                 {
                     if (y[i] <= binEdges[j])
                     {
