@@ -77,6 +77,11 @@ namespace Catch22SharpTest
                 var actual = catch22[name];
                 Assert.AreEqual(expected, actual, 1.0E-6);
             }
+
+            foreach (var (name, value) in catch22.GetNameValuePairs())
+            {
+                Assert.AreEqual(catch22[name], value);
+            }
         }
 
         private static double[] GetData(string path)
