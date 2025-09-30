@@ -168,12 +168,12 @@ namespace Catch22Sharp
         }
 
         /// <summary>
-        /// Add comment here
+        /// doc comment here
         /// </summary>
         /// <returns>
-        /// Add comment here
+        /// doc comment here
         /// </returns>
-        public (string, double)[] GetNameValuePairs()
+        public (string Name, double Value)[] GetNameValuePairs()
         {
             throw new NotImplementedException();
         }
