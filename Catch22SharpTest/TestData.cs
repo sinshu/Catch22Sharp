@@ -24,6 +24,12 @@ namespace Catch22SharpTest
         public static double[] TestSinusoid = default!;
         public static Dictionary<string, double> TestSinusoidOutput = default!;
 
+        public static double[] TestRandom = default!;
+        public static Dictionary<string, double> TestRandomOutput = default!;
+
+        public static double[] TestWave = default!;
+        public static Dictionary<string, double> TestWaveOutput = default!;
+
         [AssemblyInitialize]
         public static void AssemblyInitialize(TestContext testContext)
         {
@@ -38,6 +44,12 @@ namespace Catch22SharpTest
 
             TestSinusoid = GetData(Path.Combine(testDataDirectory, "testSinusoid.txt"));
             TestSinusoidOutput = GetExpectedValues(Path.Combine(testDataDirectory, "testSinusoid_output.txt"));
+
+            TestRandom = GetData(Path.Combine(testDataDirectory, "testRandom.txt"));
+            TestRandomOutput = GetExpectedValues(Path.Combine(testDataDirectory, "testRandom_output.txt"));
+
+            TestWave = GetData(Path.Combine(testDataDirectory, "testWave.txt"));
+            TestWaveOutput = GetExpectedValues(Path.Combine(testDataDirectory, "testWave_output.txt"));
         }
 
         [TestMethod]
@@ -66,6 +78,20 @@ namespace Catch22SharpTest
         {
             Assert.IsNotNull(TestSinusoid);
             Assert.IsNotNull(TestSinusoidOutput);
+        }
+
+        [TestMethod]
+        public void TestRandomData()
+        {
+            Assert.IsNotNull(TestRandom);
+            Assert.IsNotNull(TestRandomOutput);
+        }
+
+        [TestMethod]
+        public void TestWaveData()
+        {
+            Assert.IsNotNull(TestWave);
+            Assert.IsNotNull(TestWaveOutput);
         }
 
         [TestMethod]
