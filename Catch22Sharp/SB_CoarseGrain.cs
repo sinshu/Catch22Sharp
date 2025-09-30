@@ -2,7 +2,7 @@ using System;
 
 namespace Catch22Sharp
 {
-    public static partial class Catch22
+    public partial class Catch22
     {
         public static void sb_coarsegrain(ReadOnlySpan<double> y, string how, int numGroups, Span<int> labels)
         {

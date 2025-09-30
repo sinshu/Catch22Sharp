@@ -2,7 +2,7 @@ using System;
 
 namespace Catch22Sharp
 {
-    public static partial class Catch22
+    public partial class Catch22
     {
         private static void abs_diff(ReadOnlySpan<double> a, Span<double> b)
         {

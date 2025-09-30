@@ -2,7 +2,7 @@ using System;
 
 namespace Catch22Sharp
 {
-    public static partial class Catch22
+    public partial class Catch22
     {
         public static int PD_PeriodicityWang_th0_01(ReadOnlySpan<double> y)
         {

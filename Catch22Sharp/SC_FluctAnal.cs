@@ -2,7 +2,7 @@ using System;
 
 namespace Catch22Sharp
 {
-    public static partial class Catch22
+    public partial class Catch22
     {
         private static double SC_FluctAnal_2_50_1_logi_prop_r1(ReadOnlySpan<double> y, int lag, string how)
         {

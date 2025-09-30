@@ -2,7 +2,7 @@ using System;
 
 namespace Catch22Sharp
 {
-    public static partial class Catch22
+    public partial class Catch22
     {
         public static double IN_AutoMutualInfoStats_40_gaussian_fmmi(ReadOnlySpan<double> y)
         {
