@@ -18,7 +18,18 @@ namespace Catch22Sharp
         /// <returns>The <see cref="Catch22"/> analyzer for the provided data.</returns>
         public static Catch22 Catch22(this IEnumerable<double> y)
         {
-            return new Catch22(y.ToArray());
+            if (y == null)
+            {
+                throw new ArgumentNullException(nameof(y));
+            }
+
+            var array = y.ToArray();
+            if (array.Length == 0)
+            {
+                throw new ArgumentException("The time-series must contain at least one element.", nameof(y));
+            }
+
+            return new Catch22(array);
         }
     }
 }

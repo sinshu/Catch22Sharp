@@ -93,6 +93,11 @@ namespace Catch22Sharp
         /// <param name="y">Input time-series data expressed as a span of doubles.</param>
         public Catch22(ReadOnlySpan<double> y)
         {
+            if (y.Length == 0)
+            {
+                throw new ArgumentException("The time-series must contain at least one element.", nameof(y));
+            }
+
             var normalized = y.ToArray();
             Stats.zscore_norm2(y, normalized);
             y = normalized;
