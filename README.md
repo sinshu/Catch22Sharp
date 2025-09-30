@@ -24,14 +24,39 @@ The tests load the sample time series from `testData/` and ensure the port match
 
 ## Using the library
 
-Add a project reference to `Catch22Sharp/Catch22Sharp.csproj` from your .NET application. The `Catch22` partial class exposes static methods for each feature, accepting `ReadOnlySpan<double>` inputs where appropriate. For example, to evaluate the autocorrelation feature for a sequence:
+(WIP) The library will eventually be published as a NuGet package.
 
+__Code example:__
 ```csharp
-using Catch22Sharp;
-
-ReadOnlySpan<double> series = stackalloc double[] { 0.8, 0.4, -0.2, 0.5, 0.1 };
-ReadOnlySpan<int> tau = stackalloc int[] { 1 };
-double autocorrLag1 = Catch22.CO_AutoCorr(series, tau)[0];
+var data = ReadData(...);
+var catch22 = data.Catch22();
+foreach (var (name, value) in catch22.GetNameValuePairs())
+{
+    Console.WriteLine($"{name}, {value}");
+}
 ```
-
-Refer to `FEATURES.md` for background on each feature and the `Catch22Sharp` sources for the exact signatures and implementation details.
+__Output:__
+```
+DN_HistogramMode_5, -0.6147991148452683
+DN_HistogramMode_10, -0.7822544655522088
+DN_OutlierInclude_p_001_mdrmd, 0.40740740740740744
+DN_OutlierInclude_n_001_mdrmd, -0.23703703703703705
+first1e_acf_tau, 32.50260547693646
+firstMin_acf, 77
+SP_Summaries_welch_rect_area_5_1, 0.9931387788742457
+SP_Summaries_welch_rect_centroid, 0.03681553890925782
+FC_LocalSimple_mean3_stderr, 0.08029384289850561
+FC_LocalSimple_mean1_tauresrat, 0.8478260869565217
+MD_hrv_classic_pnn40, 0.31970260223048325
+SB_BinaryStats_mean_longstretch1, 88
+SB_BinaryStats_diff_longstretch0, 83
+SB_MotifThree_quantile_hh, 1.2105878172438547
+CO_HistogramAMI_even_2_5, 1.0063890779937608
+CO_trev_1_num, 1.782472611547055E-05
+IN_AutoMutualInfoStats_40_gaussian_fmmi, 40
+SB_TransitionMatrix_3ac_sumdiagcov, 0.08000000000000003
+PD_PeriodicityWang_th0_01, 0
+CO_Embed2_Dist_tau_d_expfit_meandiff, 7.135078608788558
+SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1, 0.29545454545454547
+SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1, 0.75
+```
