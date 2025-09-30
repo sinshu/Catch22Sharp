@@ -167,6 +167,17 @@ namespace Catch22Sharp
             }
         }
 
+        /// <summary>
+        /// Add comment here
+        /// </summary>
+        /// <returns>
+        /// Add comment here
+        /// </returns>
+        public (string, double)[] GetNameValuePairs()
+        {
+            throw new NotImplementedException();
+        }
+
         /// <inheritdoc/>
         public IEnumerator<double> GetEnumerator()
         {
