@@ -4,13 +4,8 @@ namespace Catch22Sharp
 {
     public static partial class Catch22
     {
-        private static void abs_diff(ReadOnlySpan<double> a, Span<double> b)
+        private static void abs_diff(Span<double> a, Span<double> b)
         {
-            if (a.Length <= 1)
-            {
-                return;
-            }
-
             for (int i = 1; i < a.Length; i++)
             {
                 b[i - 1] = Math.Abs(a[i] - a[i - 1]);
@@ -19,21 +14,18 @@ namespace Catch22Sharp
 
         public static double fc_local_simple(Span<double> y, int size, int train_length)
         {
-            if (size <= 1)
-            {
-                return 0.0;
-            }
-
-            Span<double> ySpan = size < y.Length ? y.Slice(0, size) : y;
-            double[] y1 = new double[ySpan.Length - 1];
+            Span<double> ySpan = y.Slice(0, size);
+            double[] y1 = new double[size - 1];
             abs_diff(ySpan, y1.AsSpan());
-            return Stats.mean(y1.AsSpan());
+            double m = Stats.mean(y1.AsSpan());
+            return m;
         }
 
         public static double FC_LocalSimple_mean_tauresrat(Span<double> y, int size, int train_length)
         {
-            Span<double> ySpan = size < y.Length ? y.Slice(0, size) : y;
-            for (int i = 0; i < ySpan.Length; i++)
+            Span<double> ySpan = y.Slice(0, size);
+            // NaN check
+            for (int i = 0; i < size; i++)
             {
                 if (double.IsNaN(ySpan[i]))
                 {
@@ -41,14 +33,9 @@ namespace Catch22Sharp
                 }
             }
 
-            int residualLength = ySpan.Length - train_length;
-            if (residualLength <= 0)
-            {
-                return 0.0;
-            }
+            double[] res = new double[size - train_length];
 
-            double[] res = new double[residualLength];
-            for (int i = 0; i < residualLength; i++)
+            for (int i = 0; i < size - train_length; i++)
             {
                 double yest = 0.0;
                 for (int j = 0; j < train_length; j++)
@@ -60,21 +47,18 @@ namespace Catch22Sharp
                 res[i] = ySpan[i + train_length] - yest;
             }
 
-            int resAC1stZ = co_firstzero(res.AsSpan(), residualLength);
-            int yAC1stZ = co_firstzero(ySpan, ySpan.Length);
-            if (yAC1stZ == 0)
-            {
-                return 0.0;
-            }
+            double resAC1stZ = co_firstzero(res.AsSpan(), size - train_length);
+            double yAC1stZ = co_firstzero(ySpan, size);
+            double output = resAC1stZ / yAC1stZ;
 
-            double output = resAC1stZ / (double)yAC1stZ;
             return output;
         }
 
         public static double FC_LocalSimple_mean_stderr(Span<double> y, int size, int train_length)
         {
-            Span<double> ySpan = size < y.Length ? y.Slice(0, size) : y;
-            for (int i = 0; i < ySpan.Length; i++)
+            Span<double> ySpan = y.Slice(0, size);
+            // NaN check
+            for (int i = 0; i < size; i++)
             {
                 if (double.IsNaN(ySpan[i]))
                 {
@@ -82,14 +66,8 @@ namespace Catch22Sharp
                 }
             }
 
-            int residualLength = ySpan.Length - train_length;
-            if (residualLength <= 1)
-            {
-                return 0.0;
-            }
-
-            double[] res = new double[residualLength];
-            for (int i = 0; i < residualLength; i++)
+            double[] res = new double[size - train_length];
+            for (int i = 0; i < size - train_length; i++)
             {
                 double yest = 0.0;
                 for (int j = 0; j < train_length; j++)
@@ -102,6 +80,7 @@ namespace Catch22Sharp
             }
 
             double output = Stats.stddev(res.AsSpan());
+
             return output;
         }
 
@@ -117,15 +96,9 @@ namespace Catch22Sharp
 
         public static double FC_LocalSimple_mean_taures(Span<double> y, int size, int train_length)
         {
-            Span<double> ySpan = size < y.Length ? y.Slice(0, size) : y;
-            int residualLength = ySpan.Length - train_length;
-            if (residualLength <= 0)
-            {
-                return 0.0;
-            }
-
-            double[] res = new double[residualLength];
-            for (int i = 0; i < residualLength; i++)
+            Span<double> ySpan = y.Slice(0, size);
+            double[] res = new double[size - train_length];
+            for (int i = 0; i < size - train_length; i++)
             {
                 double yest = 0.0;
                 for (int j = 0; j < train_length; j++)
@@ -137,40 +110,36 @@ namespace Catch22Sharp
                 res[i] = ySpan[i + train_length] - yest;
             }
 
-            int output = co_firstzero(res.AsSpan(), residualLength);
+            int output = co_firstzero(res.AsSpan(), size - train_length);
             return output;
         }
 
         public static double FC_LocalSimple_lfit_taures(Span<double> y, int size)
         {
-            Span<double> ySpan = size < y.Length ? y.Slice(0, size) : y;
-            int train_length = co_firstzero(ySpan, ySpan.Length);
-            if (train_length <= 0)
-            {
-                return 0.0;
-            }
+            Span<double> ySpan = y.Slice(0, size);
+            // set tau from first AC zero crossing
+            int train_length = co_firstzero(ySpan, size);
 
             double[] xReg = new double[train_length];
-            for (int i = 0; i < train_length; i++)
+            for (int i = 1; i < train_length + 1; i++)
             {
-                xReg[i] = i + 1;
+                xReg[i - 1] = i;
             }
 
-            int residualLength = ySpan.Length - train_length;
-            if (residualLength <= 0)
-            {
-                return 0.0;
-            }
+            double[] res = new double[size - train_length];
 
-            double[] res = new double[residualLength];
-            for (int i = 0; i < residualLength; i++)
+            for (int i = 0; i < size - train_length; i++)
             {
                 Span<double> yReg = ySpan.Slice(i, train_length);
                 Stats.linreg(train_length, xReg.AsSpan(), yReg, out double m, out double b);
+
+                // fprintf(stdout, "i=%i, m=%f, b=%f\\n", i, m, b);
+
                 res[i] = ySpan[i + train_length] - (m * (train_length + 1) + b);
             }
 
-            int output = co_firstzero(res.AsSpan(), residualLength);
+            int output = co_firstzero(res.AsSpan(), size - train_length);
+
             return output;
         }
     }

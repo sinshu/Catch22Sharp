@@ -7,11 +7,6 @@ namespace Catch22Sharp
     {
         private static int nextpow2(int n)
         {
-            if (n <= 0)
-            {
-                return 1;
-            }
-
             n--;
             n |= n >> 1;
             n |= n >> 2;
@@ -22,108 +17,79 @@ namespace Catch22Sharp
             return n;
         }
 
-        private static void dot_multiply(Span<Complex> a, Span<Complex> b)
+        private static void dot_multiply(Span<Complex> a, Span<Complex> b, int size)
         {
-            if (a.Length != b.Length)
+            for (int i = 0; i < size; i++)
             {
-                throw new ArgumentException("Span lengths must match.");
-            }
-
-            for (int i = 0; i < a.Length; i++)
-            {
-                Complex valueA = a[i];
-                Complex valueB = b[i];
-                a[i] = valueA * Complex.Conjugate(valueB);
+                a[i] = a[i] * Complex.Conjugate(b[i]);
             }
         }
 
         private static double[] co_autocorrs(Span<double> y)
         {
             int size = y.Length;
-            if (size == 0)
-            {
-                return Array.Empty<double>();
-            }
+            double m;
+            int nFFT;
+            m = Stats.mean(y);
+            nFFT = nextpow2(size) << 1;
 
-            double mean = Stats.mean(y);
-            double zeroLag = 0.0;
-            int nFFT = nextpow2(size) << 1;
-            Complex[] spectrum = new Complex[nFFT];
-
+            Complex[] F = new Complex[nFFT];
+            Complex[] tw = new Complex[nFFT];
             for (int i = 0; i < size; i++)
             {
-                double centered = y[i] - mean;
-                spectrum[i] = new Complex(centered, 0.0);
-                zeroLag += centered * centered;
+                F[i] = new Complex(y[i] - m, 0.0);
             }
-
-            if (zeroLag == 0.0)
+            for (int i = size; i < nFFT; i++)
             {
-                double[] constant = new double[size];
-                if (constant.Length > 0)
-                {
-                    constant[0] = 1.0;
-                }
-                return constant;
+                F[i] = Complex.Zero;
             }
 
-            Complex[] twiddles = new Complex[nFFT];
-            Fft.twiddles(twiddles.AsSpan());
-            dot_multiply_fft(spectrum.AsSpan(), twiddles.AsSpan());
-
-            double divisor = spectrum[0].Real;
-            if (divisor == 0.0)
-            {
-                divisor = zeroLag;
-            }
-
-            double[] autocorrs = new double[nFFT];
-            if (divisor == 0.0)
-            {
-                return autocorrs;
-            }
-
+            Fft.twiddles(tw.AsSpan());
+            Fft.fft(F.AsSpan(), tw.AsSpan());
+            dot_multiply(F.AsSpan(), F.AsSpan(), nFFT);
+            Fft.fft(F.AsSpan(), tw.AsSpan());
+            Complex divisor = F[0];
             for (int i = 0; i < nFFT; i++)
             {
-                autocorrs[i] = spectrum[i].Real / divisor;
+                F[i] /= divisor;
             }
 
-            return autocorrs;
-        }
-
-        private static void dot_multiply_fft(Span<Complex> spectrum, Span<Complex> twiddles)
-        {
-            Fft.fft(spectrum, twiddles);
-            dot_multiply(spectrum, spectrum);
-            Fft.fft(spectrum, twiddles);
+            double[] @out = new double[nFFT];
+            for (int i = 0; i < nFFT; i++)
+            {
+                @out[i] = F[i].Real;
+            }
+            return @out;
         }
 
         private static int co_firstzero(Span<double> y, int maxtau)
         {
             double[] autocorrs = co_autocorrs(y);
+
             int zerocrossind = 0;
-            int limit = Math.Min(maxtau, autocorrs.Length);
-            while (zerocrossind < limit && autocorrs[zerocrossind] > 0)
+            while (zerocrossind < maxtau && autocorrs[zerocrossind] > 0)
             {
                 zerocrossind += 1;
             }
+
             return zerocrossind;
         }
 
         public static double[] CO_AutoCorr(Span<double> y, Span<int> tau)
         {
+            int tau_size = tau.Length;
             double[] autocorrs = co_autocorrs(y);
-            double[] output = new double[tau.Length];
-            for (int i = 0; i < tau.Length; i++)
+            double[] @out = new double[tau_size];
+            for (int i = 0; i < tau_size; i++)
             {
-                int idx = tau[i];
-                output[i] = idx < autocorrs.Length ? autocorrs[idx] : 0.0;
+                @out[i] = autocorrs[tau[i]];
             }
-            return output;
+            return @out;
         }
 
         public static double CO_f1ecac(Span<double> y)
         {
+            // NaN check
             for (int i = 0; i < y.Length; i++)
             {
                 if (double.IsNaN(y[i]))
@@ -132,50 +98,62 @@ namespace Catch22Sharp
                 }
             }
 
+            // compute autocorrelations
             double[] autocorrs = co_autocorrs(y);
-            double thresh = 1.0 / Math.Exp(1.0);
-            double outVal = y.Length;
-            for (int i = 0; i < y.Length - 2 && i + 1 < autocorrs.Length; i++)
+
+            // threshold to cross
+            double thresh = 1.0 / Math.Exp(1);
+
+            double @out = y.Length;
+            for (int i = 0; i < y.Length - 2; i++)
             {
+                // printf("i=%d autocorrs_i=%1.3f\n", i, autocorrs[i]);
                 if (autocorrs[i + 1] < thresh)
                 {
                     double m = autocorrs[i + 1] - autocorrs[i];
                     double dy = thresh - autocorrs[i];
-                    double dx = m != 0 ? dy / m : 0.0;
-                    outVal = i + dx;
-                    return outVal;
+                    double dx = dy / m;
+                    @out = i + dx;
+                    // printf("thresh=%1.3f AC(i)=%1.3f AC(i-1)=%1.3f m=%1.3f dy=%1.3f dx=%1.3f out=%1.3f\n", thresh, autocorrs[i], autocorrs[i-1], m, dy, dx, out);
+                    return @out;
                 }
             }
 
-            return outVal;
+            return @out;
         }
 
         public static double CO_Embed2_Basic_tau_incircle(Span<double> y, double radius, int tau)
         {
-            int tauIntern = tau < 0 ? co_firstzero(y, y.Length) : tau;
-            int denom = y.Length - tauIntern;
-            if (denom <= 0)
+            int size = y.Length;
+            int tauIntern = 0;
+
+            if (tau < 0)
             {
-                return 0.0;
+                tauIntern = co_firstzero(y, size);
+            }
+            else
+            {
+                tauIntern = tau;
             }
 
             double insidecount = 0;
-            for (int i = 0; i < denom; i++)
+            for (int i = 0; i < size - tauIntern; i++)
             {
-                double v1 = y[i];
-                double v2 = y[i + tauIntern];
-                if (v1 * v1 + v2 * v2 < radius)
+                if (y[i] * y[i] + y[i + tauIntern] * y[i + tauIntern] < radius)
                 {
-                    insidecount += 1.0;
+                    insidecount += 1;
                 }
             }
 
-            return insidecount / denom;
+            return insidecount / (size - tauIntern);
         }
 
         public static double CO_Embed2_Dist_tau_d_expfit_meandiff(Span<double> y)
         {
-            for (int i = 0; i < y.Length; i++)
+            int size = y.Length;
+
+            // NaN check
+            for (int i = 0; i < size; i++)
             {
                 if (double.IsNaN(y[i]))
                 {
@@ -183,64 +161,102 @@ namespace Catch22Sharp
                 }
             }
 
-            int tau = co_firstzero(y, y.Length);
-            if (tau > y.Length / 10)
-            {
-                tau = (int)Math.Floor(y.Length / 10.0);
-            }
+            int tau = co_firstzero(y, size);
 
-            if (tau <= 0 || y.Length - tau - 1 <= 0)
-            {
-                return 0.0;
-            }
+            //printf("co_firstzero ran\n");
 
-            int validLength = y.Length - tau - 1;
-            double[] d = new double[y.Length - tau];
-            for (int i = 0; i < validLength; i++)
+            if (tau > (double)size / 10)
             {
-                double diff1 = y[i + 1] - y[i];
-                double diff2 = y[i + tau] - y[i + tau + 1];
-                d[i] = Math.Sqrt(diff1 * diff1 + diff2 * diff2);
+                tau = (int)Math.Floor(size / 10.0);
+            }
+            //printf("tau = %i\n", tau);
+
+            double[] d = new double[size - tau];
+            for (int i = 0; i < size - tau - 1; i++)
+            {
+                d[i] = Math.Sqrt((y[i + 1] - y[i]) * (y[i + 1] - y[i]) + (y[i + tau] - y[i + tau + 1]) * (y[i + tau] - y[i + tau + 1]));
+
+                //printf("d[%i]: %1.3f\n", i, d[i]);
                 if (double.IsNaN(d[i]))
                 {
                     return double.NaN;
                 }
+
+                /*
+                if(i<100)
+                    printf("%i, y[i]=%1.3f, y[i+1]=%1.3f, y[i+tau]=%1.3f, y[i+tau+1]=%1.3f, d[i]: %1.3f\n", i, y[i], y[i+1], y[i+tau], y[i+tau+1], d[i]);
+                 */
             }
 
-            double l = Stats.mean(d.AsSpan(0, validLength));
-            int nBins = HistCounts.num_bins_auto(d.AsSpan(0, validLength));
+            //printf("embedding finished\n");
+
+            // mean for exponential fit
+            double l = Stats.mean(d.AsSpan(0, size - tau - 1));
+
+            // count histogram bin contents
+            /*
+             int * histCounts;
+            double * binEdges;
+            int nBins = histcounts(d, size-tau-1, -1, &histCounts, &binEdges);
+             */
+
+            int nBins = HistCounts.num_bins_auto(d.AsSpan(0, size - tau - 1));
             if (nBins == 0)
             {
-                return 0.0;
+                return 0;
             }
-
             int[] histCounts = new int[nBins];
             double[] binEdges = new double[nBins + 1];
-            HistCounts.histcounts_preallocated(d.AsSpan(0, validLength), nBins, histCounts.AsSpan(), binEdges.AsSpan());
+            HistCounts.histcounts_preallocated(d.AsSpan(0, size - tau - 1), nBins, histCounts.AsSpan(), binEdges.AsSpan());
 
+            //printf("histcount ran\n");
+
+            // normalise to probability
             double[] histCountsNorm = new double[nBins];
             for (int i = 0; i < nBins; i++)
             {
-                histCountsNorm[i] = histCounts[i] / (double)validLength;
+                //printf("histCounts %i: %i\n", i, histCounts[i]);
+                histCountsNorm[i] = histCounts[i] / (double)(size - tau - 1);
+                //printf("histCounts norm %i: %1.3f\n", i, histCountsNorm[i]);
             }
+
+            /*
+            for(int i = 0; i < nBins; i++){
+                printf("histCounts[%i] = %i\n", i, histCounts[i]);
+            }
+            for(int i = 0; i < nBins; i++){
+                printf("histCountsNorm[%i] = %1.3f\n", i, histCountsNorm[i]);
+            }
+            for(int i = 0; i < nBins+1; i++){
+                printf("binEdges[%i] = %1.3f\n", i, binEdges[i]);
+            }
+            */
+
+            //printf("histcounts normed\n");
 
             double[] d_expfit_diff = new double[nBins];
             for (int i = 0; i < nBins; i++)
             {
-                double mid = (binEdges[i] + binEdges[i + 1]) * 0.5;
-                double expf = l != 0 ? Math.Exp(-mid / l) / l : 0.0;
+                double expf = Math.Exp(-(binEdges[i] + binEdges[i + 1]) * 0.5 / l) / l;
                 if (expf < 0)
                 {
-                    expf = 0.0;
+                    expf = 0;
                 }
                 d_expfit_diff[i] = Math.Abs(histCountsNorm[i] - expf);
+                //printf("d_expfit_diff %i: %1.3f\n", i, d_expfit_diff[i]);
             }
 
-            return Stats.mean(d_expfit_diff);
+            double @out = Stats.mean(d_expfit_diff.AsSpan());
+
+            //printf("out = %1.6f\n", out);
+            //printf("reached free statements\n");
+
+            return @out;
         }
 
         public static int CO_FirstMin_ac(Span<double> y)
         {
+            // NaN check
             for (int i = 0; i < y.Length; i++)
             {
                 if (double.IsNaN(y[i]))
@@ -250,8 +266,9 @@ namespace Catch22Sharp
             }
 
             double[] autocorrs = co_autocorrs(y);
+
             int minInd = y.Length;
-            for (int i = 1; i < y.Length - 1 && i < autocorrs.Length - 1; i++)
+            for (int i = 1; i < y.Length - 1; i++)
             {
                 if (autocorrs[i] < autocorrs[i - 1] && autocorrs[i] < autocorrs[i + 1])
                 {
@@ -265,6 +282,7 @@ namespace Catch22Sharp
 
         public static double CO_trev_1_num(Span<double> y)
         {
+            // NaN check
             for (int i = 0; i < y.Length; i++)
             {
                 if (double.IsNaN(y[i]))
@@ -273,23 +291,25 @@ namespace Catch22Sharp
                 }
             }
 
-            const int tau = 1;
-            if (y.Length <= tau)
-            {
-                return 0.0;
-            }
+            int tau = 1;
 
-            double[] diffTemp = new double[y.Length - tau];
+            double[] diffTemp = new double[y.Length - 1];
+
             for (int i = 0; i < y.Length - tau; i++)
             {
                 diffTemp[i] = Math.Pow(y[i + 1] - y[i], 3);
             }
 
-            return Stats.mean(diffTemp.AsSpan());
+            double @out;
+
+            @out = Stats.mean(diffTemp.AsSpan(0, y.Length - tau));
+
+            return @out;
         }
 
         public static double CO_HistogramAMI_even_2_5(Span<double> y)
         {
+            // NaN check
             for (int i = 0; i < y.Length; i++)
             {
                 if (double.IsNaN(y[i]))
@@ -298,99 +318,123 @@ namespace Catch22Sharp
                 }
             }
 
-            const int tau = 2;
-            const int numBins = 5;
-            if (y.Length <= tau)
-            {
-                return 0.0;
-            }
+            int tau = 2;
+            int numBins = 5;
 
-            int length = y.Length - tau;
-            double[] y1 = new double[length];
-            double[] y2 = new double[length];
-            for (int i = 0; i < length; i++)
+            double[] y1 = new double[y.Length - tau];
+            double[] y2 = new double[y.Length - tau];
+
+            for (int i = 0; i < y.Length - tau; i++)
             {
                 y1[i] = y[i];
                 y2[i] = y[i + tau];
             }
 
+            // set bin edges
             double maxValue = Stats.max_(y);
             double minValue = Stats.min_(y);
-            double binStep = (maxValue - minValue + 0.2) / numBins;
-            double[] binEdges = new double[numBins + 1];
+
+            double binStep = (maxValue - minValue + 0.2) / 5;
+            double[] binEdges = new double[5 + 1];
             for (int i = 0; i < numBins + 1; i++)
             {
                 binEdges[i] = minValue + binStep * i - 0.1;
+                // printf("binEdges[%i] = %1.3f\\n", i, binEdges[i]);
             }
 
+            // count histogram bin contents
             int[] bins1 = HistCounts.histbinassign(y1.AsSpan(), binEdges.AsSpan());
+
             int[] bins2 = HistCounts.histbinassign(y2.AsSpan(), binEdges.AsSpan());
 
-            double[] bins12 = new double[length];
-            double[] binEdges12 = new double[(numBins + 1) * (numBins + 1)];
-            for (int i = 0; i < length; i++)
+            /*
+            // debug
+            for(int i = 0; i < size-tau; i++){
+                printf("bins1[%i] = %i, bins2[%i] = %i\\n", i, bins1[i], i, bins2[i]);
+            }
+            */
+
+            // joint
+            double[] bins12 = new double[y.Length - tau];
+            double[] binEdges12 = new double[(5 + 1) * (5 + 1)];
+
+            for (int i = 0; i < y.Length - tau; i++)
             {
                 bins12[i] = (bins1[i] - 1) * (numBins + 1) + bins2[i];
+                // printf("bins12[%i] = %1.3f\\n", i, bins12[i]);
             }
+
             for (int i = 0; i < (numBins + 1) * (numBins + 1); i++)
             {
                 binEdges12[i] = i + 1;
+                // printf("binEdges12[%i] = %1.3f\\n", i, binEdges12[i]);
             }
 
+            // fancy solution for joint histogram here
             int[] jointHistLinear = HistCounts.histcount_edges(bins12.AsSpan(), binEdges12.AsSpan());
 
-            double[][] pij = new double[numBins][];
-            for (int i = 0; i < numBins; i++)
-            {
-                pij[i] = new double[numBins];
+            /*
+            // debug
+            for(int i = 0; i < (numBins+1)*(numBins+1); i++){
+                printf("jointHistLinear[%i] = %i\\n", i, jointHistLinear[i]);
             }
+            */
 
+            // transfer to 2D histogram (no last bin, as in original implementation)
+            double[,] pij = new double[numBins, numBins];
             int sumBins = 0;
             for (int i = 0; i < numBins; i++)
             {
                 for (int j = 0; j < numBins; j++)
                 {
-                    int idx = i * (numBins + 1) + j;
-                    if (idx < jointHistLinear.Length)
+                    pij[j, i] = jointHistLinear[i * (numBins + 1) + j];
+
+                    // printf("pij[%i][%i]=%1.3f\\n", i, j, pij[i][j]);
+
+                    sumBins += (int)pij[j, i];
+                }
+            }
+
+            // normalise
+            for (int i = 0; i < numBins; i++)
+            {
+                for (int j = 0; j < numBins; j++)
+                {
+                    pij[j, i] /= sumBins;
+                }
+            }
+
+            // marginals
+            double[] pi = new double[5];
+            double[] pj = new double[5];
+            for (int i = 0; i < numBins; i++)
+            {
+                for (int j = 0; j < numBins; j++)
+                {
+                    pi[i] += pij[i, j];
+                    pj[j] += pij[i, j];
+                    // printf("pij[%i][%i]=%1.3f, pi[%i]=%1.3f, pj[%i]=%1.3f\\n", i, j, pij[i][j], i, pi[i], j, pj[j]);
+                }
+            }
+
+            /*
+            // debug
+            for(int i = 0; i < numBins; i++){
+                printf("pi[%i]=%1.3f, pj[%i]=%1.3f\\n", i, pi[i], i, pj[i]);
+            }
+            */
+
+            // mutual information
+            double ami = 0;
+            for (int i = 0; i < numBins; i++)
+            {
+                for (int j = 0; j < numBins; j++)
+                {
+                    if (pij[i, j] > 0)
                     {
-                        pij[j][i] = jointHistLinear[idx];
-                        sumBins += jointHistLinear[idx];
-                    }
-                }
-            }
-
-            if (sumBins == 0)
-            {
-                return 0.0;
-            }
-
-            for (int i = 0; i < numBins; i++)
-            {
-                for (int j = 0; j < numBins; j++)
-                {
-                    pij[j][i] /= sumBins;
-                }
-            }
-
-            double[] pi = new double[numBins];
-            double[] pj = new double[numBins];
-            for (int i = 0; i < numBins; i++)
-            {
-                for (int j = 0; j < numBins; j++)
-                {
-                    pi[i] += pij[i][j];
-                    pj[j] += pij[i][j];
-                }
-            }
-
-            double ami = 0.0;
-            for (int i = 0; i < numBins; i++)
-            {
-                for (int j = 0; j < numBins; j++)
-                {
-                    if (pij[i][j] > 0 && pi[i] > 0 && pj[j] > 0)
-                    {
-                        ami += pij[i][j] * Math.Log(pij[i][j] / (pj[j] * pi[i]));
+                        //printf("pij[%i][%i]=%1.3f, pi[%i]=%1.3f, pj[%i]=%1.3f, logarg=, %1.3f, log(...)=%1.3f\\n",
+                        //       i, j, pij[i][j], i, pi[i], j, pj[j], pij[i][j]/(pi[i]*pj[j]), log(pij[i][j]/(pi[i]*pj[j])));
+                        ami += pij[i, j] * Math.Log(pij[i, j] / (pj[j] * pi[i]));
                     }
                 }
             }
